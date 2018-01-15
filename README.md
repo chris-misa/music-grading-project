@@ -1,6 +1,8 @@
 # Music Grading Project
 
 This project reads and grades GarageBand files.
+This is a rough sketch of how things could go: please feel free to jump in, add comments
+change things, delete things, etc. . .
 
 ## Proposed Directory Structure
 
