@@ -1,11 +1,8 @@
 """
 Description:
-
 Functions to extract apple loop meta data from .caf files
 
-
 Authors:
-
 Chris Misa, chris@chrismisa.com
 """
 
@@ -46,4 +43,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
