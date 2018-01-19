@@ -81,7 +81,10 @@ class Database:
     # make sure there are no bad keys in given data
     for k in data.keys():
       if k not in self.COLUMNS.keys():
-        return -1
+        print("Ignoring key: {} in {}".format(k, data['filename']))
+    newdata = {k:v for k,v in data.items() if k in self.COLUMNS.keys()}
+    data = newdata
+
     # form string for the querry
     cols = "(" + ",".join(data.keys()) + ")"
     tags = "(" + ",".join(":" + k for k in data.keys()) + ")"
@@ -90,13 +93,14 @@ class Database:
     cur.execute("insert into audioLoops {} values {};".format(cols, tags), \
                 data)
     self.conn.commit()
+    return 0
 
   def listFilenames(self):
     """
       Returns a list of all filenames (primary keys) currently stored in the database
     """
     cur = self.conn.cursor()
-    return list(cur.execute("select filename from audioloops;"))
+    return list(name for name, in cur.execute("select filename from audioloops;"))
 
   def removeFilename(self,filename):
     """

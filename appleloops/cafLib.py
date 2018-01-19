@@ -34,12 +34,19 @@ def decodeMetaData(md):
   result = {}
   mdSplit = md[4:].split("\x00")
   for i in range(0, len(mdSplit) - 1, 2):
-    result[mdSplit[i]] = mdSplit[i+1]
+    key = mdSplit[i].replace(" ", "_")
+    result[key] = mdSplit[i+1]
   return result
 
+def loadMetaData(filepath):
+  """
+    Convenience method to properly call getMetaDataChunk and decodeMetaData.
+    Returns a dictionary with meta data extracted form the given file
+  """
+  return decodeMetaData(getMetaDataChunk(filepath))
+
 def main():
-  md = getMetaDataChunk(sys.argv[1])
-  print(str(decodeMetaData(md)))
+  print(str(loadMetaData(sys.argv[1])))
 
 if __name__ == "__main__":
   main()
