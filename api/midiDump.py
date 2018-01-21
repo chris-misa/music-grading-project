@@ -39,9 +39,8 @@ def decodeArrEvent(e):
     Interprits the arrangement chunk's event structs
   """
   eventType, startTime, trackID, loopTime, eventID = \
-     struct.unpack("<L L 12x B 3x Q 4s", e[0:36])
-  # Only the upper 6 bytes of loopTime seem to mater
-  loopTime = loopTime >> 16 if loopTime != NO_LOOP_VALUE else None
+     struct.unpack("<L L 12x B 7x L 4s", e[0:36])
+  loopTime = loopTime if loopTime != NO_LOOP_VALUE else None
   # Normalize start times
   startTime -= EVENT_START_TIME_OFFSET
   return {"type":eventType, "start":startTime, "track_id":trackID, \
@@ -61,6 +60,15 @@ def getEventChunk(pd, eventID, startOffset = 0):
   eventBody = pd[eventBodyAddr+36:eventBodyAddr+36+chunkSize]
   return (eventHeader, eventBody)
 
+
+def decodeEventHeader(header):
+  """
+    Pulls interesting data from the given event header
+    Returns as a dictionary
+  """
+  length, = struct.unpack("<L", header[0x88:0x8c])
+  return {"length":length}
+
 def decodeEventBody(body):
   """
     Converts the data in the event body into note events
@@ -73,15 +81,16 @@ def decodeEventBody(body):
       offset += 16
     elif body[offset:offset+4] == "\x90\x00\x00\x00":
       # note event
-      time, vel, pitch = struct.unpack("7sBB",body[offset+4:offset+13])
+      time, vel, pitch, dur = struct.unpack("<7s B B 15x L",body[offset+4:offset+32])
       # hack the 7 bytes into an 8 byte int
       time, = struct.unpack("<Q", time + "\x00")
       time -= NOTE_START_TIME_OFFSET
-      notes.append((time, vel, pitch))
+      notes.append((time, vel, pitch, dur))
       offset += 32
   return notes
-  
 
+
+  
 def main():
   """
     Main mostly for testing
@@ -90,11 +99,13 @@ def main():
     mm = mmap.mmap(f.fileno(), 0)
     events = decodeArrChunk(getArrChunk(mm))
     for e in events:
-      h,b = getEventChunk(mm,e['id'])
-      notes = decodeEventBody(b)
-      print("event:")
-      for n in notes:
-        print(str(n))
+      if e['type'] == 32:
+        h,b = getEventChunk(mm,e['id'])
+        header = decodeEventHeader(h)
+        notes = decodeEventBody(b)
+        print("event: " + str(e) + "\nlength: " + str(header['length']))
+        for n in notes:
+          print(str(n))
 
 if __name__ == "__main__":
   main()
