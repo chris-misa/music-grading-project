@@ -8,7 +8,7 @@ ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
 EVENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00"
 END_OF_LIST_SENTINEL = "\xf1\x00\x00\x00\xff\xff\xff\x3f"
-NO_LOOP_VALUE = 0x3FFFFFFF00000000
+NO_LOOP_VALUE = 0x3FFFFFFF
 EVENT_START_TIME_OFFSET = 0x8700
 NOTE_START_TIME_OFFSET = 0x9600
 
@@ -72,6 +72,7 @@ def decodeEventHeader(header):
 def decodeEventBody(body):
   """
     Converts the data in the event body into note events
+    Returns a list of dicts
   """
   offset = 0
   notes = []
@@ -85,11 +86,22 @@ def decodeEventBody(body):
       # hack the 7 bytes into an 8 byte int
       time, = struct.unpack("<Q", time + "\x00")
       time -= NOTE_START_TIME_OFFSET
-      notes.append((time, vel, pitch, dur))
+      notes.append({"time":time, "vel":vel, "pitch":pitch, "duration":dur})
       offset += 32
   return notes
 
-
+def cropNotesToLength(notes, length):
+  """
+    Cuts off all notes after length
+    Adjust last note's duration to make sure it doesn't exceed length
+  """
+  while True:
+    lastNote = notes.pop()
+    if lastNote['time'] < length:
+      break
+  if lastNote['time'] + lastNote['duration'] > length:
+    lastNote['duration'] = length - lastNote['time']
+  notes.append(lastNote)
   
 def main():
   """
@@ -103,6 +115,7 @@ def main():
         h,b = getEventChunk(mm,e['id'])
         header = decodeEventHeader(h)
         notes = decodeEventBody(b)
+        cropNotesToLength(notes, header['length'])
         print("event: " + str(e) + "\nlength: " + str(header['length']))
         for n in notes:
           print(str(n))
