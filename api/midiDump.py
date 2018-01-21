@@ -7,6 +7,7 @@ import mmap #qSvE tag of arrangement data chunk
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
 EVENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00"
+END_OF_LIST_SENTINEL = "\xf1\x00\x00\x00\xff\xff\xff\x3f"
 NO_LOOP_VALUE = 0x3FFFFFFF00000000
 START_TIME_OFFSET = 0x8700
 
@@ -26,7 +27,7 @@ def decodeArrChunk(arrChunk):
   """
   events = []
   offset = 0
-  while arrChunk[offset:offset+8] != "\xf1\x00\x00\x00\xff\xff\xff\x3f":
+  while arrChunk[offset:offset+8] != END_OF_LIST_SENTINEL:
     events.append(decodeArrEvent(arrChunk[offset:offset+0x50]))
     offset += 0x50
   return events
@@ -58,6 +59,25 @@ def getEventChunk(pd, eventID, startOffset = 0):
   eventHeader = pd[eventHeaderAddr:eventBodyAddr]
   eventBody = pd[eventBodyAddr+36:eventBodyAddr+36+chunkSize]
   return (eventHeader, eventBody)
+
+def decodeEventBody(body):
+  """
+    Converts the data in the event body into note events
+  """
+  offset = 0
+  notes = []
+  while body[offset:offset+8] != END_OF_LIST_SENTINEL:
+    if body[offset:offset+4] == "\xC0\x00\x00\x00":
+      # start of event marker: skipping for now
+      offset += 16
+    elif body[offset:offset+4] == "\x90\x00\x00\x00":
+      # note event
+      time, vel, pitch = struct.unpack("7sBB",body[offset+4:offset+13])
+      # hack the 7 bytes into an 8 byte int
+      time, = struct.unpack("<Q", time + "\x00")
+      notes.append((time, vel, pitch))
+      offset += 32
+  return notes
   
 
 def main():
@@ -69,7 +89,10 @@ def main():
     events = decodeArrChunk(getArrChunk(mm))
     for e in events:
       h,b = getEventChunk(mm,e['id'])
-      sys.stdout.write(h + "\xEE" * 16 + b + "\xFF"*16)
+      notes = decodeEventBody(b)
+      print("event:")
+      for n in notes:
+        print(str(n))
 
 if __name__ == "__main__":
   main()
