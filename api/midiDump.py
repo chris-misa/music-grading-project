@@ -9,7 +9,8 @@ EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
 EVENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00"
 END_OF_LIST_SENTINEL = "\xf1\x00\x00\x00\xff\xff\xff\x3f"
 NO_LOOP_VALUE = 0x3FFFFFFF00000000
-START_TIME_OFFSET = 0x8700
+EVENT_START_TIME_OFFSET = 0x8700
+NOTE_START_TIME_OFFSET = 0x9600
 
 def getArrChunk(pd):
   """
@@ -42,7 +43,7 @@ def decodeArrEvent(e):
   # Only the upper 6 bytes of loopTime seem to mater
   loopTime = loopTime >> 16 if loopTime != NO_LOOP_VALUE else None
   # Normalize start times
-  startTime -= START_TIME_OFFSET
+  startTime -= EVENT_START_TIME_OFFSET
   return {"type":eventType, "start":startTime, "track_id":trackID, \
           "loop_time":loopTime, "id":eventID}
 
@@ -75,6 +76,7 @@ def decodeEventBody(body):
       time, vel, pitch = struct.unpack("7sBB",body[offset+4:offset+13])
       # hack the 7 bytes into an 8 byte int
       time, = struct.unpack("<Q", time + "\x00")
+      time -= NOTE_START_TIME_OFFSET
       notes.append((time, vel, pitch))
       offset += 32
   return notes
