@@ -114,40 +114,26 @@ def assembleTracks(pd, events):
     Which don't actually fall into the event
     Returns a list of track dictionaries
   """ 
-  tracks = []
+  tracks = {}
   for e in events:
     if e['type'] == 32: # Instrument event
       h, b = getEventChunk(pd, e['id'])
       header = decodeEventHeader(h)
- ###########CONTINUTE HERE#############
-  
+      notes = decodeEventBody(b, header['start_offset'])
+      notes = cropNotes(notes, header['length'])
+      if e['track_id'] not in tracks.keys(): # set up a new track if needed
+        tracks[e['track_id']] = {'notes':[]}
+      for n in notes:
+        n['time'] += e['start'] # add event start time to note start times
+        tracks[e['track_id']]['notes'].append(n)
+  return tracks
   
 def main():
-  """
-    Main mostly for testing
-  """
   with open(sys.argv[1],'r+b') as f:
     mm = mmap.mmap(f.fileno(), 0)
     events = decodeArrChunk(getArrChunk(mm))
-    for e in events:
-      if e['type'] == 32:
-        h,b = getEventChunk(mm,e['id'])
-        header = decodeEventHeader(h)
-        notes = decodeEventBody(b, header['start_offset'])
-        notes = cropNotes(notes, header['length'])
-        print("event: " + str(e) + "\nlength: " + str(header['length']) + \
-          "\nstart offset: " + str(header['start_offset']))
-        for n in notes:
-          print(str(n))
-
-def NOTmain():
-  with open(sys.argv[1],'r+b') as f:
-    mm = mmap.mmap(f.fileno(), 0)
-    events = decodeArrChunk(getArrChunk(mm))
-    for e in events:
-      if e['type'] == 32:
-        h,b = getEventChunk(mm,e['id'])
-        sys.stdout.write(h + "\xee"*16 + b + "\xff"*16)
+    tracks = assembleTracks(mm, events)
+    print(str(tracks))
 
 if __name__ == "__main__":
   main()
