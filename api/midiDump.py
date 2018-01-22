@@ -1,5 +1,11 @@
 """
   Extracts MIDI data from a given ProjectData file
+
+In progress:
+
+Mapping from global track numer to inst track number
+Realization of looped segments
+
 """
 import struct
 import sys
@@ -84,9 +90,13 @@ def decodeEventBody(body, startOffset):
   """
   offset = 0
   notes = []
-  while body[offset:offset+8] != END_OF_LIST_SENTINEL:
+  bodyLen = len(body) - 4
+  while body[offset:offset+8] != END_OF_LIST_SENTINEL and offset < bodyLen:
     if body[offset:offset+4] == "\xC0\x00\x00\x00":
       # start of event marker: skipping for now
+      offset += 16
+    elif body[offset:offset+4] == "\xb0\x00\x00\x00":
+      # some kind of marker tag: skipping for now
       offset += 16
     elif body[offset:offset+4] == "\x90\x00\x00\x00":
       # note event
@@ -96,6 +106,9 @@ def decodeEventBody(body, startOffset):
       time -= NOTE_START_TIME_OFFSET + startOffset
       notes.append({"time":time, "vel":vel, "pitch":pitch, "duration":dur})
       offset += 32
+    else:
+      # Assume that things are 16 byte aligned so unknown sections will wrap at 16 bytes
+      offset += 16
   return notes
 
 def cropNotes(notes, length):
