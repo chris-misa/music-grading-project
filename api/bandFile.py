@@ -35,12 +35,17 @@ arr.py
 drummer.py
 tracklist.py
 
+If run as standalone, loads first arugment as GarageBand file and prints the
+above information
+
 """
 
 import mmap
 import os
 import struct
 import io
+import pprint
+import sys
 
 import ccl_bplist
 import arr
@@ -150,3 +155,9 @@ def getInstTracks(pd):
      Requires tracklist to be imported
   """
   return tracklist.getTrackList(pd)
+
+def main():
+  pprint.pprint(load(sys.argv[1]))
+
+if __name__ == "__main__":
+  main()
