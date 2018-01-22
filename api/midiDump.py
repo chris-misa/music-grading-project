@@ -67,9 +67,10 @@ def decodeEventHeader(header):
     Returns as a dictionary
   """
   length, = struct.unpack("<L", header[0x88:0x8c])
-  return {"length":length}
+  startOffset, = struct.unpack("<L", header[0x50:0x54])
+  return {"length":length,"start_offset":startOffset}
 
-def decodeEventBody(body):
+def decodeEventBody(body, startOffset):
   """
     Converts the data in the event body into note events
     Returns a list of dicts
@@ -85,23 +86,41 @@ def decodeEventBody(body):
       time, vel, pitch, dur = struct.unpack("<7s B B 15x L",body[offset+4:offset+32])
       # hack the 7 bytes into an 8 byte int
       time, = struct.unpack("<Q", time + "\x00")
-      time -= NOTE_START_TIME_OFFSET
+      time -= NOTE_START_TIME_OFFSET + startOffset
       notes.append({"time":time, "vel":vel, "pitch":pitch, "duration":dur})
       offset += 32
   return notes
 
-def cropNotesToLength(notes, length):
+def cropNotes(notes, length):
   """
-    Cuts off all notes after length
+    Cuts off all notes after length or before time = 0
     Adjust last note's duration to make sure it doesn't exceed length
+    Returns the modified note list
   """
-  while True:
-    lastNote = notes.pop()
-    if lastNote['time'] < length:
-      break
-  if lastNote['time'] + lastNote['duration'] > length:
-    lastNote['duration'] = length - lastNote['time']
-  notes.append(lastNote)
+  startIndex = 0
+  while notes[startIndex]['time'] < 0:
+    startIndex += 1
+  endIndex = len(notes) - 1
+  while notes[endIndex]['time'] >= length:
+    endIndex -= 1
+  if notes[endIndex]['time'] + notes[endIndex]['duration'] > length:
+    notes[endIndex]['duration'] = length - notes[endIndex]['time']
+  return notes[startIndex:endIndex+1]
+
+def assembleTracks(pd, events):
+  """
+    Performs lookups, translations, and grouping of a list of event dictionaries
+    Events are merged into their tracks using the above crop function to handle notes
+    Which don't actually fall into the event
+    Returns a list of track dictionaries
+  """ 
+  tracks = []
+  for e in events:
+    if e['type'] == 32: # Instrument event
+      h, b = getEventChunk(pd, e['id'])
+      header = decodeEventHeader(h)
+ ###########CONTINUTE HERE#############
+  
   
 def main():
   """
@@ -114,11 +133,21 @@ def main():
       if e['type'] == 32:
         h,b = getEventChunk(mm,e['id'])
         header = decodeEventHeader(h)
-        notes = decodeEventBody(b)
-        cropNotesToLength(notes, header['length'])
-        print("event: " + str(e) + "\nlength: " + str(header['length']))
+        notes = decodeEventBody(b, header['start_offset'])
+        notes = cropNotes(notes, header['length'])
+        print("event: " + str(e) + "\nlength: " + str(header['length']) + \
+          "\nstart offset: " + str(header['start_offset']))
         for n in notes:
           print(str(n))
+
+def NOTmain():
+  with open(sys.argv[1],'r+b') as f:
+    mm = mmap.mmap(f.fileno(), 0)
+    events = decodeArrChunk(getArrChunk(mm))
+    for e in events:
+      if e['type'] == 32:
+        h,b = getEventChunk(mm,e['id'])
+        sys.stdout.write(h + "\xee"*16 + b + "\xff"*16)
 
 if __name__ == "__main__":
   main()
