@@ -3,7 +3,9 @@
 """
 import struct
 import sys
-import mmap #qSvE tag of arrangement data chunk
+import mmap
+import pprint
+
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
 EVENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00"
@@ -66,8 +68,13 @@ def decodeEventHeader(header):
     Pulls interesting data from the given event header
     Returns as a dictionary
   """
-  length, = struct.unpack("<L", header[0x88:0x8c])
-  startOffset, = struct.unpack("<L", header[0x50:0x54])
+  nameLength, = struct.unpack("<H", header[0x34:0x36])
+  # subsiquent addresses are align 2
+  nameLength = nameLength if nameLength % 2 == 0 else nameLength + 1
+  startOffsetAddr = 0x3a + nameLength
+  lengthAddr = 0x72 + nameLength
+  startOffset, = struct.unpack("<L", header[startOffsetAddr:startOffsetAddr+4])
+  length, = struct.unpack("<L", header[lengthAddr:lengthAddr+4])
   return {"length":length,"start_offset":startOffset}
 
 def decodeEventBody(body, startOffset):
@@ -98,10 +105,10 @@ def cropNotes(notes, length):
     Returns the modified note list
   """
   startIndex = 0
-  while notes[startIndex]['time'] < 0:
-    startIndex += 1
   endIndex = len(notes) - 1
-  while notes[endIndex]['time'] >= length:
+  while notes[startIndex]['time'] < 0 and startIndex < endIndex:
+    startIndex += 1
+  while notes[endIndex]['time'] >= length and endIndex > 0:
     endIndex -= 1
   if notes[endIndex]['time'] + notes[endIndex]['duration'] > length:
     notes[endIndex]['duration'] = length - notes[endIndex]['time']
@@ -118,6 +125,7 @@ def assembleTracks(pd, events):
   for e in events:
     if e['type'] == 32: # Instrument event
       h, b = getEventChunk(pd, e['id'])
+      #sys.stdout.write(h + "\xee"*16 + b + "\xff"*16)
       header = decodeEventHeader(h)
       notes = decodeEventBody(b, header['start_offset'])
       notes = cropNotes(notes, header['length'])
@@ -133,7 +141,8 @@ def main():
     mm = mmap.mmap(f.fileno(), 0)
     events = decodeArrChunk(getArrChunk(mm))
     tracks = assembleTracks(mm, events)
-    print(str(tracks))
+    pprint.pprint(tracks)
+    
 
 if __name__ == "__main__":
   main()
