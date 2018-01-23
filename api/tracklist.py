@@ -35,8 +35,11 @@ def getTrackList(pd):
       # Move to third UCuA marker
       p = pd.find(b"UCuA", p + 4)
       p = pd.find(b"UCuA", p + 4)
+      # Some times there might be empty instrument slots with one UCuA. . .
+      if p > ocuaAddr:
+        continue
       # add offset of preset name from third UCuA marker
-      p += 48
+      p += 0x34
       # hack to strip anything after a dot from preset name:
       # apple loops generate tracks with .pst
       end = pd.find(b'.', p, p + 64)
