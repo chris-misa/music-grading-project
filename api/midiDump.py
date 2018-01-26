@@ -96,7 +96,10 @@ def decodeEventBody(body, startOffset):
       # start of event marker: skipping for now
       offset += 16
     elif body[offset:offset+4] == "\xb0\x00\x00\x00":
-      # some kind of marker tag: skipping for now
+      # modulation or cc events: skipped
+      offset += 16
+    elif body[offset:offset+4] == "\xe0\x00\x00\x00":
+      # pitch bend events: skipped
       offset += 16
     elif body[offset:offset+4] == "\x90\x00\x00\x00":
       # note event
