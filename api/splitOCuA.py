@@ -8,7 +8,7 @@ def main():
     mm = mmap.mmap(f.fileno(),0)
     inst1Addr = mm.find(b'Inst 1')
     end = mm.rfind(OCuA_TAG, 0, inst1Addr)
-    for i in range(0,4):
+    for i in range(0,int(sys.argv[2])):
       start = mm.find(OCuA_TAG, end)
       end = mm.find(OCuA_TAG, start + 11)
       with open("out" + str(i), 'wb') as outfile:
