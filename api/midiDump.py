@@ -11,6 +11,7 @@ import struct
 import sys
 import mmap
 import pprint
+import os
 
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
@@ -152,12 +153,26 @@ def assembleTracks(pd, events):
         tracks[e['track_id']]['notes'].append(n)
   return tracks
   
-def main():
-  with open(sys.argv[1],'r+b') as f:
+#  
+# File handling functions
+#
+
+PATH_TO_PROJECT = "Alternatives/000"
+
+def getProjectData(fp):
+  """Returns ProjectData file in an mmap object"""
+  pdPath = os.path.join(fp, PATH_TO_PROJECT, "ProjectData")
+  with open(pdPath, "r+b") as f:
     mm = mmap.mmap(f.fileno(), 0)
-    events = decodeArrChunk(getArrChunk(mm))
-    tracks = assembleTracks(mm, events)
-    pprint.pprint(tracks)
+    return mm
+
+
+
+def main():
+  mm = getProjectData(sys.argv[1])
+  events = decodeArrChunk(getArrChunk(mm))
+  tracks = assembleTracks(mm, events)
+  pprint.pprint(tracks)
     
 
 if __name__ == "__main__":

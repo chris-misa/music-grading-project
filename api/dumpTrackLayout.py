@@ -13,17 +13,19 @@ def getTrackEntries(pd):
   """
     Returns karT track entries
   """
-  startAddr = pd.find(KART_TAG,0)
+  arrAddr = pd.find(ARR_HEADER_TAG)
+  startAddr = pd.find(KART_TAG,arrAddr)
   karts = []
-  karts.append(pd[startAddr:startAddr+0x6c])
-  startAddr += 0x6c
+  while pd[startAddr:startAddr+7] == KART_TAG:
+    karts.append(pd[startAddr:startAddr+0x5c])
+    startAddr += 0x5c
   return karts
 
 def main():
   with open(sys.argv[1],'r+b') as f:
     mm = mmap.mmap(f.fileno(),0)
     t = getTrackEntries(mm)
-    sys.stdout.write(t[0])
+    sys.stdout.write(('\xff'*4).join(t))
 
 if __name__ == "__main__":
   main()
