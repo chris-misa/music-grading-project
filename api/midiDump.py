@@ -20,6 +20,7 @@ import os
 import argparse
 import midi
 import heapq
+import copy
 
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
@@ -135,9 +136,31 @@ def cropNotes(notes, length):
     startIndex += 1
   while notes[endIndex]['time'] >= length and endIndex > 0:
     endIndex -= 1
-  if notes[endIndex]['time'] + notes[endIndex]['duration'] > length:
-    notes[endIndex]['duration'] = length - notes[endIndex]['time']
+  for i in range(startIndex,endIndex+1):
+    if notes[i]['time'] + notes[i]['duration'] > length:
+      notes[i]['duration'] = length - notes[i]['time']
   return notes[startIndex:endIndex+1]
+
+def loopNotes(notes, length, loopDuration):
+  """
+    Repeate the events between time = 0 and time = length until time = loopDuration
+    Assumes the event has already been cropped (note times all between 0 and length)
+    Returns the modified note list
+  """
+  scope = len(notes)
+  i = 0
+  start = length
+  while notes[i]['time'] + start < loopDuration:
+    newNote = copy.copy(notes[i])
+    newNote['time'] += start
+    if newNote['time'] + newNote['duration'] > loopDuration:
+      newNote['duration'] = loopDuration - newNote['time']
+    notes.append(newNote)
+    i += 1
+    if i == scope:
+      i = 0
+      start += length
+  return notes
 
 def assembleTracks(pd, events):
   """
@@ -154,6 +177,8 @@ def assembleTracks(pd, events):
       header = decodeEventHeader(h)
       notes = decodeEventBody(b, header['start_offset'])
       notes = cropNotes(notes, header['length'])
+      if e['loop_time'] != None:
+        notes = loopNotes(notes, header['length'], e['loop_time'])
       if e['track_id'] not in tracks.keys(): # set up a new track if needed
         tracks[e['track_id']] = {'notes':[]}
       for n in notes:
