@@ -57,7 +57,7 @@ def decodeArrEvent(e):
     Interprits the arrangement chunk's event structs
   """
   eventType, startTime, trackID, loopTime, eventID = \
-     struct.unpack("<L L 12x B 7x L 4s", e[0:36])
+     struct.unpack("<H 2x L 12x B 7x L 4s", e[0:36])
   loopTime = loopTime if loopTime != NO_LOOP_VALUE else None
   # Normalize start times
   startTime -= EVENT_START_TIME_OFFSET
@@ -102,16 +102,16 @@ def decodeEventBody(body, startOffset):
   notes = []
   bodyLen = len(body) - 4
   while body[offset:offset+8] != END_OF_LIST_SENTINEL and offset < bodyLen:
-    if body[offset:offset+4] == "\xC0\x00\x00\x00":
+    if body[offset:offset+2] == "\xC0\x00":
       # start of event marker: skipping for now
       offset += 16
-    elif body[offset:offset+4] == "\xb0\x00\x00\x00":
+    elif body[offset:offset+2] == "\xb0\x00":
       # modulation or cc events: skipped
       offset += 16
-    elif body[offset:offset+4] == "\xe0\x00\x00\x00":
+    elif body[offset:offset+2] == "\xe0\x00":
       # pitch bend events: skipped
       offset += 16
-    elif body[offset:offset+4] == "\x90\x00\x00\x00":
+    elif body[offset:offset+2] == "\x90\x00":
       # note event
       time, vel, pitch, dur = struct.unpack("<7s B B 15x L",body[offset+4:offset+32])
       # hack the 7 bytes into an 8 byte int
@@ -199,9 +199,13 @@ def getProjectData(fp):
     mm = mmap.mmap(f.fileno(), 0)
     return mm
 
+# Time resolution to convert GarageBand times to MIDI ticks
+GB_NOTE_RESOLUTION = 960
+
 def writeToMIDIFile(tracks, filepath):
   """Writes the tracks to a standard MIDI file"""
   pattern = midi.Pattern()
+  pattern.resolution = GB_NOTE_RESOLUTION
   for t in tracks.values():
     track = midi.Track()
     pattern.append(track)
