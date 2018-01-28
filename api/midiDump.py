@@ -1,5 +1,10 @@
 """
-  Extracts MIDI data from a given ProjectData file
+  Description: Extracts MIDI data from a given GarageBand file
+
+  Author: Chris Misa, chris@chrismisa.com
+
+  Dependencies: python-midi (https://github.com/vishnubob/python-midi.git)
+                  -> for writeToMIDIFile()
 
 In progress:
 
@@ -12,6 +17,9 @@ import sys
 import mmap
 import pprint
 import os
+import argparse
+import midi
+import heapq
 
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
@@ -166,13 +174,52 @@ def getProjectData(fp):
     mm = mmap.mmap(f.fileno(), 0)
     return mm
 
-
+def writeToMIDIFile(tracks, filepath):
+  """Writes the tracks to a standard MIDI file"""
+  pattern = midi.Pattern()
+  for t in tracks.values():
+    track = midi.Track()
+    pattern.append(track)
+    offs = []
+    currentTime = 0
+    # Go through each note in track interleaving into on/off events
+    for n in t['notes']:
+      # Insert note off events from queue
+      while len(offs) > 0 and offs[0][0] < n['time']:
+        off = heapq.heappop(offs)
+        dif = off[0] - currentTime
+        currentTime = off[0]
+        offEvent = midi.NoteOffEvent(tick=dif, velocity=60, pitch=off[1])
+        track.append(offEvent)
+      # Add note on
+      dif = n['time'] - currentTime
+      currentTime = n['time']
+      onEvent = midi.NoteOnEvent(tick=dif, velocity=n['vel'], pitch=n['pitch'])
+      track.append(onEvent)
+      # Add note off to queue
+      heapq.heappush(offs, (n['time']+n['duration'], n['pitch']))
+    # Insert leftover note off events from queue
+    while offs:
+      off = heapq.heappop(offs)
+      dif = off[0] - currentTime
+      currentTime = off[0]
+      offEvent = midi.NoteOffEvent(tick=dif, pitch=off[1])
+      track.append(offEvent)
+    track.append(midi.EndOfTrackEvent(tick=1))
+  midi.write_midifile(filepath, pattern)
 
 def main():
-  mm = getProjectData(sys.argv[1])
+  parser = argparse.ArgumentParser(description="Extract MIDI data from GarageBand files.")
+  parser.add_argument('filepath',help="Path to GarageBand project directory")
+  parser.add_argument('-o',help="Dump here as MIDI file", metavar="outfile")
+  args = parser.parse_args()
+  mm = getProjectData(args.filepath)
   events = decodeArrChunk(getArrChunk(mm))
   tracks = assembleTracks(mm, events)
-  pprint.pprint(tracks)
+  if args.o != None:
+    writeToMIDIFile(tracks, args.o)
+  else:
+    pprint.pprint(tracks)
     
 
 if __name__ == "__main__":
