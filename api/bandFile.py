@@ -63,6 +63,11 @@ def load(filepath):
   except OSError as error:
     print("Failed to load MetaData.plist for project at {}".format(filepath))
     return
+  try:
+    displayState = getDisplayState(filepath)
+  except OSError as error:
+    print("Failed to load MetaData.plist for project at {}".format(filepath))
+    return
   result = {}
   result["key"] = getKey(metaData)
   result["gender"] = getGender(metaData)
@@ -71,6 +76,7 @@ def load(filepath):
   result["drummer"] = getDrummer(projectData)
   result["audio_loops"] = getAudioLoops(projectData)
   result["inst_tracks"] = getInstTracks(projectData)
+  result["arrangement_visible"] = getArrShown(displayState)
   return result
 
 #  
@@ -90,6 +96,13 @@ def getMetaData(fp):
   """Returns MetaData.plist as a python object via ccl_bplist"""
   mdPath = os.path.join(fp, PATH_TO_PROJECT, "MetaData.plist")
   with open(mdPath) as f:
+    pl = ccl_bplist.load(f)
+    return pl
+
+def getDisplayState(fp):
+  """Returns DisplayState.plist as a pythong object via ccl_bplist"""
+  dsPath = os.path.join(fp, PATH_TO_PROJECT, "DisplayState.plist")
+  with open(dsPath) as f:
     pl = ccl_bplist.load(f)
     return pl
 
@@ -155,6 +168,22 @@ def getInstTracks(pd):
      Requires tracklist to be imported
   """
   return tracklist.getTrackList(pd)
+
+
+#
+# DisplayState.plist reading functions
+#
+
+ARR_STATE_VIS_OFFSET = 0x28
+ARR_STATE_VIS_SHOWN = "\x41"
+ARR_STATE_VIS_HIDDEN = "\x23"
+def getArrShown(ds):
+  """
+    Pulls out the visibility of the arrangement track
+    from the given decoded plist
+  """
+  arrData = ds['screensetDictArray'][0]['layoutDictArray'][0]['docwWindowState']['udataArrange']
+  return arrData[ARR_STATE_VIS_OFFSET] == ARR_STATE_VIS_SHOWN
 
 def main():
   pprint.pprint(load(sys.argv[1]))
