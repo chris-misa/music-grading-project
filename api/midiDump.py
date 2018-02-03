@@ -173,9 +173,9 @@ def cropNotes(notes, length):
   """
   startIndex = 0
   endIndex = len(notes) - 1
-  while notes[startIndex]['time'] < 0 and startIndex < endIndex:
+  while startIndex < endIndex and notes[startIndex]['time'] < 0:
     startIndex += 1
-  while notes[endIndex]['time'] >= length and endIndex > 0:
+  while endIndex > 0 and notes[endIndex]['time'] >= length:
     endIndex -= 1
   for i in range(startIndex,endIndex+1):
     if notes[i]['time'] + notes[i]['duration'] > length:
@@ -221,15 +221,18 @@ def assembleTracks(pd, events):
       if e['loop_time'] != None:
         notes = loopNotes(notes, header['length'], e['loop_time'])
       if e['track_id'] not in tracks.keys(): # set up a new track if needed
-        tracks[e['track_id']] = {'notes':[]}
+        tracks[e['track_id']] = {'notes':[], 'type':'instrument'}
       for n in notes:
         n['time'] += e['start'] # add event start time to note start times
         tracks[e['track_id']]['notes'].append(n)
+    else:
+      if e['track_id'] not in tracks.keys(): # set up a new track if needed
+        tracks[e['track_id']] = {'type':'audio'}
   # Add track labels and convert tracks into list
   labels = collectTrackLabels(pd)
   for i, l in enumerate(labels):
     if i+1 not in tracks.keys():
-      tracks[i+1] = {}
+      tracks[i+1] = {'type':'empty'}
     tracks[i+1]["label"] = l
   return tracks
   
@@ -283,6 +286,14 @@ def writeToMIDIFile(tracks, filepath):
       track.append(offEvent)
     track.append(midi.EndOfTrackEvent(tick=1))
   midi.write_midifile(filepath, pattern)
+
+def getTracks(pd):
+  """
+    Convenience method to return all track data in a dict strucure
+  """
+  events = decodeArrChunk(getArrChunk(pd))
+  tracks = assembleTracks(pd, events)
+  return tracks
 
 def main():
   parser = argparse.ArgumentParser(description="Extract MIDI data from GarageBand files.")

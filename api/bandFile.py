@@ -1,7 +1,13 @@
 """
+
+bandFile.py, a mini GarageBand API
+****************************************
+
 Author: Chris Misa, cmisa@cs.uoregon.edu
+****************************************
 
 Description:
+****************************************
 
 Read a .band file created by Apple's GarageBand.
 Convert certain information from the ProjectData
@@ -20,23 +26,33 @@ Keys of the resulting dict include:
 "drummer" -> Returns a list of character identifiers for all drummers in the project
              These identifiers seem to be mapped to drummer names as presented to user.
 "audio_loops" -> Returns a list of audio apple loops used in the project.
-"inst_tracks" -> Returns a list of the preset used to create each instrument track
-                 in the project.  Each list element is a tuple with form
-                 (track number, preset, channel strip gain)
-                 Currently the gain is expressed as the raw 4-byte int used by
-                 GarageBand internally.
-                 FIGURE OUT HOW THIS MAPS TO +/- DB.
-                 ADD CHECK FOR GAIN PLUGIN.
+"tracks" -> Returns a dict of tracks including note data. See midiDump.py for more detail.
+
+
+If run as standalone, loads first arugment as GarageBand file and prints the
+above information on stdout.
+
+
+Work Points:
+****************************************
+
+-> Some track names seem to retain the "Inst N" format and probably can be resolved
+to the corresponding Inst chunk.
+
+-> Doesn't handle GarageBand 'Takes' very well.  These seem to be stored as zero-length
+events on tracks labeled no output. These only seem to come up in 5.1.
+
+-> Doesn't yet seek into plugins. This needs to be atleast implemented on the first
+Inst chunk for rubric point 5.6.
+
 
 Dependencies:
+****************************************
 
 ccl_bplist.py, CCL Forensics
 arr.py
 drummer.py
-tracklist.py
-
-If run as standalone, loads first arugment as GarageBand file and prints the
-above information
+midiDump.py
 
 """
 
@@ -50,7 +66,7 @@ import sys
 import ccl_bplist
 import arr
 import drummer
-import tracklist
+import midiDump
 
 def load(filepath):
   try:
@@ -75,7 +91,7 @@ def load(filepath):
   result["arrangement"] = getArrangement(projectData)
   result["drummer"] = getDrummer(projectData)
   result["audio_loops"] = getAudioLoops(projectData)
-  result["inst_tracks"] = getInstTracks(projectData)
+  result["tracks"] = getTracks(projectData)
   result["arrangement_visible"] = getArrShown(displayState)
   return result
 
@@ -162,12 +178,12 @@ def getAudioLoops(pd):
   return loops
 
 
-def getInstTracks(pd):
+def getTracks(pd):
   """Returns a list with info about each instrument track as tuples:
      (track number, base preset name, gain).
      Requires tracklist to be imported
   """
-  return tracklist.getTrackList(pd)
+  return midiDump.getTracks(pd)
 
 
 #
