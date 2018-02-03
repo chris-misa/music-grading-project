@@ -5,12 +5,6 @@
 
   Dependencies: python-midi (https://github.com/vishnubob/python-midi.git)
                   -> for writeToMIDIFile()
-
-In progress:
-
-Mapping from global track numer to inst track number
-Realization of looped segments
-
 """
 import struct
 import sys
@@ -18,10 +12,13 @@ import mmap
 import pprint
 import os
 import argparse
-import midi
 import heapq
 import copy
+import midi
 
+ARR_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00\x04"
+KART_TAG = "\x6b\x61\x72\x54\x04\x00\x17"
+IVNE_TAG_BASE = "\x69\x76\x6e\x45\x04\x00\x14\x00\x00\x00"
 ARRANGMENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00\x04"
 EVENT_CHUNK_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00"
 EVENT_CHUNK_TAG = "\x71\x53\x76\x45\x01\x00\x17\x00\x00\x00"
@@ -29,6 +26,50 @@ END_OF_LIST_SENTINEL = "\xf1\x00\x00\x00\xff\xff\xff\x3f"
 NO_LOOP_VALUE = 0x3FFFFFFF
 EVENT_START_TIME_OFFSET = 0x8700
 NOTE_START_TIME_OFFSET = 0x9600
+
+#
+# Functions for getting track labels (names
+#
+
+def getTrackEntries(pd):
+  """
+    Returns karT arrangment header track entries
+  """
+  arrAddr = pd.find(ARR_HEADER_TAG)
+  startAddr = pd.find(KART_TAG,arrAddr)
+  karts = []
+  while pd[startAddr:startAddr+7] == KART_TAG:
+    karts.append(pd[startAddr:startAddr+0x5c])
+    startAddr += 0x5c
+  return karts
+
+def getLabelEntry(pd, labelID):
+  """
+    Returns the label chunk for the given id
+    by looking up the ivnE tag
+  """
+  startAddr = pd.find(IVNE_TAG_BASE + labelID)
+  length, = struct.unpack("<L", pd[startAddr+28:startAddr+32])
+  return pd[startAddr+36:startAddr+36+length]
+
+def collectTrackLabels(pd):
+  """
+    Collects labels for each track
+    return: array of track labels
+  """
+  arrTracks = getTrackEntries(pd)
+  labels = []
+  for t in arrTracks:
+    tag = t[0x2c:0x2e]
+    labelChunk = getLabelEntry(pd, tag)
+    nameLen, = struct.unpack("<H", labelChunk[0x9E:0xA0])
+    name = labelChunk[0xA0:0xA0+nameLen]
+    labels.append(name)
+  return labels
+
+#
+# Functions for getting at note data
+#
 
 def getArrChunk(pd):
   """
@@ -166,7 +207,7 @@ def assembleTracks(pd, events):
   """
     Performs lookups, translations, and grouping of a list of event dictionaries
     Events are merged into their tracks using the above crop function to handle notes
-    Which don't actually fall into the event
+    which don't actually fall into the event
     Returns a list of track dictionaries
   """ 
   tracks = {}
@@ -184,6 +225,12 @@ def assembleTracks(pd, events):
       for n in notes:
         n['time'] += e['start'] # add event start time to note start times
         tracks[e['track_id']]['notes'].append(n)
+  # Add track labels and convert tracks into list
+  labels = collectTrackLabels(pd)
+  for i, l in enumerate(labels):
+    if i+1 not in tracks.keys():
+      tracks[i+1] = {}
+    tracks[i+1]["label"] = l
   return tracks
   
 #  
