@@ -14,6 +14,8 @@ import os
 import argparse
 import heapq
 import copy
+import re
+
 import midi
 
 ARR_HEADER_TAG = "\x71\x65\x53\x4d\x02\x00\x17\x00\x00\x00\x04"

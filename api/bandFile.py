@@ -27,6 +27,7 @@ Keys of the resulting dict include:
              These identifiers seem to be mapped to drummer names as presented to user.
 "audio_loops" -> Returns a list of audio apple loops used in the project.
 "tracks" -> Returns a dict of tracks including note data. See midiDump.py for more detail.
+"inst_1_gain" -> Returns the gain of the gain plug in on Inst 1 as float or None
 
 
 If run as standalone, loads first arugment as GarageBand file and prints the
@@ -67,6 +68,7 @@ import ccl_bplist
 import arr
 import drummer
 import midiDump
+import getGain
 
 def load(filepath):
   try:
@@ -93,6 +95,7 @@ def load(filepath):
   result["audio_loops"] = getAudioLoops(projectData)
   result["tracks"] = getTracks(projectData)
   result["arrangement_visible"] = getArrShown(displayState)
+  result["inst_1_gain"] = getInstGain(projectData)
   return result
 
 #  
@@ -185,6 +188,12 @@ def getTracks(pd):
   """
   return midiDump.getTracks(pd)
 
+def getInstGain(pd):
+  """
+    Returns the gain parameter of the first gain plugin found
+    on the Inst 1 instrument channel as a float.
+  """
+  return getGain.getGain(pd, "Inst 1")
 
 #
 # DisplayState.plist reading functions
