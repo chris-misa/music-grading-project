@@ -29,9 +29,10 @@ NO_LOOP_VALUE = 0x3FFFFFFF
 EVENT_START_TIME_OFFSET = 0x8700
 NOTE_START_TIME_OFFSET = 0x9600
 
+
 #
-# Functions for getting track labels (names
-#
+# Functions for getting track labels (names)
+#####################################################
 
 def getTrackEntries(pd):
   """
@@ -66,12 +67,12 @@ def collectTrackLabels(pd):
     labelChunk = getLabelEntry(pd, tag)
     nameLen, = struct.unpack("<H", labelChunk[0x9E:0xA0])
     name = labelChunk[0xA0:0xA0+nameLen]
-    labels.append(name)
+    labels.append((name, tag))
   return labels
 
 #
-# Functions for getting at note data
-#
+# Parsing main events structure
+#############################################
 
 def getArrChunk(pd):
   """
@@ -106,6 +107,10 @@ def decodeArrEvent(e):
   startTime -= EVENT_START_TIME_OFFSET
   return {"type":eventType, "start":startTime, "track_id":trackID, \
           "loop_time":loopTime, "id":eventID}
+
+#
+# Finding and interpriting Event headers and bodies
+########################################################
 
 def getEventChunk(pd, eventID, startOffset = 0):
   """
@@ -167,6 +172,30 @@ def decodeEventBody(body, startOffset):
       offset += 16
   return notes
 
+#
+# Auxiliry functions for dealing with GarageBand features
+#############################################################
+
+def getCurrentTake(header, body):
+  """
+    Handle multiple takes in same region.
+    Basically we have the same structure as the arrangement header, body.
+    Returns the eventID of the currently selected event.
+  """
+  # Find a karT entry with 00 at position 0x27 -> the selected take
+  startAddr = header.find(KART_TAG)
+  while header[startAddr:startAddr+7] == KART_TAG:
+    kart = header[startAddr:startAddr+0x5c]
+    if kart[0x27] == "\x00":
+      curEvent, = struct.unpack("B", kart[0x12])
+      break
+    startAddr += 0x5c
+  # Just in case,
+  if curEvent == None:
+    return
+  # Jump to the relevant chunk and grab the eventID
+  return body[0x50 * curEvent + 0x20]
+
 def cropNotes(notes, length):
   """
     Cuts off all notes after length or before time = 0
@@ -216,7 +245,14 @@ def assembleTracks(pd, events):
   for e in events:
     if e['type'] == 32: # Instrument event
       h, b = getEventChunk(pd, e['id'])
-      #sys.stdout.write(h + "\xee"*16 + b + "\xff"*16)
+      # Check if there are multiple takes
+      if b[0] == "\x20":
+        curTake = getCurrentTake(h, b)
+        if curTake != None:
+          h, b = getEventChunk(pd, curTake)
+        else: # Give up
+          print("Dropped multi-take region tagged {}".format(hex(e['id'])))
+          continue
       header = decodeEventHeader(h)
       notes = decodeEventBody(b, header['start_offset'])
       notes = cropNotes(notes, header['length'])
@@ -235,12 +271,14 @@ def assembleTracks(pd, events):
   for i, l in enumerate(labels):
     if i+1 not in tracks.keys():
       tracks[i+1] = {'type':'empty'}
-    tracks[i+1]["label"] = l
+    label, tag = l
+    tracks[i+1]["label"] = label
+    tracks[i+1]["tag"], = struct.unpack("<H", tag)
   return tracks
   
 #  
 # File handling functions
-#
+############################
 
 PATH_TO_PROJECT = "Alternatives/000"
 
@@ -259,34 +297,35 @@ def writeToMIDIFile(tracks, filepath):
   pattern = midi.Pattern()
   pattern.resolution = GB_NOTE_RESOLUTION
   for t in tracks.values():
-    track = midi.Track()
-    pattern.append(track)
-    offs = []
-    currentTime = 0
-    # Go through each note in track interleaving into on/off events
-    for n in t['notes']:
-      # Insert note off events from queue
-      while len(offs) > 0 and offs[0][0] < n['time']:
+    if t['type'] == 'instrument':
+      track = midi.Track()
+      pattern.append(track)
+      offs = []
+      currentTime = 0
+      # Go through each note in track interleaving into on/off events
+      for n in t['notes']:
+        # Insert note off events from queue
+        while len(offs) > 0 and offs[0][0] < n['time']:
+          off = heapq.heappop(offs)
+          dif = off[0] - currentTime
+          currentTime = off[0]
+          offEvent = midi.NoteOffEvent(tick=dif, velocity=60, pitch=off[1])
+          track.append(offEvent)
+        # Add note on
+        dif = n['time'] - currentTime
+        currentTime = n['time']
+        onEvent = midi.NoteOnEvent(tick=dif, velocity=n['vel'], pitch=n['pitch'])
+        track.append(onEvent)
+        # Add note off to queue
+        heapq.heappush(offs, (n['time']+n['duration'], n['pitch']))
+      # Insert leftover note off events from queue
+      while offs:
         off = heapq.heappop(offs)
         dif = off[0] - currentTime
         currentTime = off[0]
-        offEvent = midi.NoteOffEvent(tick=dif, velocity=60, pitch=off[1])
+        offEvent = midi.NoteOffEvent(tick=dif, pitch=off[1])
         track.append(offEvent)
-      # Add note on
-      dif = n['time'] - currentTime
-      currentTime = n['time']
-      onEvent = midi.NoteOnEvent(tick=dif, velocity=n['vel'], pitch=n['pitch'])
-      track.append(onEvent)
-      # Add note off to queue
-      heapq.heappush(offs, (n['time']+n['duration'], n['pitch']))
-    # Insert leftover note off events from queue
-    while offs:
-      off = heapq.heappop(offs)
-      dif = off[0] - currentTime
-      currentTime = off[0]
-      offEvent = midi.NoteOffEvent(tick=dif, pitch=off[1])
-      track.append(offEvent)
-    track.append(midi.EndOfTrackEvent(tick=1))
+      track.append(midi.EndOfTrackEvent(tick=1))
   midi.write_midifile(filepath, pattern)
 
 def getTracks(pd):
