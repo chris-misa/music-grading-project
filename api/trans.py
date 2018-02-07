@@ -2,15 +2,7 @@
 
 Get transposition track data.
 
-Might not be necessary if GB actually stores regions as transposed,
-as it seems to more them in the display as transposition move.
-
-Still, this track would provide a simpler centralized method for
-decerning properly realized transpositions.
-
-The data chunk seems to be formed from 0x30-byte records.
-offset 0x15 to 0x16 is some two-byte transposition value.
-offset 0x2 is probably some 8-byte time code.
+Note: Note data is already transposed when saved in regions.
 
 """
 

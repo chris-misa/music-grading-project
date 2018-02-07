@@ -28,6 +28,8 @@ Keys of the resulting dict include:
 "audio_loops" -> Returns a list of audio apple loops used in the project.
 "tracks" -> Returns a dict of tracks including note data. See midiDump.py for more detail.
 "inst_1_gain" -> Returns the gain of the gain plug in on Inst 1 as float or None
+"transposition" -> A list of transposition events, each a dictionary with keys
+                    "time", "value"
 
 
 If run as standalone, loads first arugment as GarageBand file and prints the
@@ -40,12 +42,6 @@ Work Points:
 -> Some track names seem to retain the "Inst N" format and probably can be resolved
 to the corresponding Inst chunk.
 
--> Doesn't handle GarageBand 'Takes' very well.  These seem to be stored as zero-length
-events on tracks labeled no output. These only seem to come up in 5.1.
-
--> Doesn't yet seek into plugins. This needs to be atleast implemented on the first
-Inst chunk for rubric point 5.6.
-
 
 Dependencies:
 ****************************************
@@ -54,6 +50,9 @@ ccl_bplist.py, CCL Forensics
 arr.py
 drummer.py
 midiDump.py
+getGain.py
+midiDump.py
+trans.py
 
 """
 
@@ -69,6 +68,7 @@ import arr
 import drummer
 import midiDump
 import getGain
+import trans
 
 def load(filepath):
   try:
@@ -96,6 +96,7 @@ def load(filepath):
   result["tracks"] = getTracks(projectData)
   result["arrangement_visible"] = getArrShown(displayState)
   result["inst_1_gain"] = getInstGain(projectData)
+  result["transposition"] = getTrans(projectData)
   return result
 
 #  
@@ -194,6 +195,12 @@ def getInstGain(pd):
     on the Inst 1 instrument channel as a float.
   """
   return getGain.getGain(pd, "Inst 1")
+
+def getTrans(pd):
+  """
+    Returns list of transposition events
+  """
+  return trans.decodeTransChunk(trans.getTransChunk(pd))
 
 #
 # DisplayState.plist reading functions
