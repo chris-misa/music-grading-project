@@ -269,6 +269,10 @@ def assembleTracks(pd, events):
   # Add track labels and convert tracks into list
   labels = collectTrackLabels(pd)
   for i, l in enumerate(labels):
+    # Skip deactivated tracks which seem to be product of multiple takes
+    if l[0] == "No Output":
+      continue
+    # Make a new empty track incase there were no events
     if i+1 not in tracks.keys():
       tracks[i+1] = {'type':'empty'}
     label, tag = l
