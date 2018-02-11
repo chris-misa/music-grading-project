@@ -7,14 +7,14 @@ T : trivial, E : easy, M : medium
 | 2.1. | A Software Instrument track should be created. | T 
 | 2.2. | The metronome should be turned off. | T
 | 2.3. | The Key of the song should be chosen, and set to either C major, G major, or A minor. | T
-|
+| | | | |
 | 3.1. | Verse 1 and Chorus 1 arrangement Markers should be in the Arrangement track, each 8 measures long. | T
 | 3.2. | A Drummer track should be created, with a drummer, a beat, and a tempo selected. | E
 |
 | 4.1. | There should be a total of five instrument tracks in the following order: 1) "Classic Electric Piano", 2) drummer, 3) bass, 4) comping, 5) texture. | M
 | 4.2. | Track 1 should be empty | E
 | 4.3. | Tracks 2 through 4 should have software instrument loops only. | E
-| 4.4. | Track 5 may have software instrument loops or audio loops from the "Percussion" or "Sound Effects" categories. | E
+| 4.4. | Track 5 may have software instrument loops or audio loops√äfrom the "Percussion" or "Sound Effects" categories. | E
 | 4.5. | For tracks 2 through 5 there should be one loop in the verse, and a different one in the chorus. | M
 | 4.6. | Loop regions should be looped as necessary so that they are 8 measures long, lasting for the entire section. | E
 | 4.7. | Loops should be modified as necessary, with dissonances changed to consonances. | T
