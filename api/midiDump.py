@@ -348,6 +348,13 @@ def getTracks(pd):
   tracks = assembleTracks(pd, events)
   return tracks
 
+def makeTracks(filepath):
+  mm = getProjectData(filepath)
+  events = decodeArrChunk(getArrChunk(mm))
+  tracks = assembleTracks(mm, events)
+
+  return tracks
+
 def main():
   parser = argparse.ArgumentParser(description="Extract MIDI data from GarageBand files.")
   parser.add_argument('filepath',help="Path to GarageBand project directory")
