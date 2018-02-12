@@ -174,7 +174,7 @@ def decodeEventBody(body, startOffset):
   return notes
 
 #
-# Auxiliry functions for dealing with GarageBand features
+# Auxilary functions for dealing with GarageBand features
 #############################################################
 
 def getCurrentTake(header, body):
@@ -264,13 +264,14 @@ def assembleTracks(pd, events):
       # set up a new track if needed
       if e['track_id'] not in tracks.keys():
         tracks[e['track_id']] = {'notes':[], 'type':'instrument', 'regions':[]}
-      # Add notes
-      for n in notes:
-        n['time'] += e['start'] # add event start time to note start times
-        tracks[e['track_id']]['notes'].append(n)
-      # Add region info
+      # Add region data
       tracks[e['track_id']]['regions'].append({'name':header['region_name'], \
-          'start':e['start'], 'length':regionLength})
+          'start':e['start'], 'length':regionLength, 'notes':notes})
+      # Add note stream
+      for n in notes:
+        newNote = copy.copy(n)
+        newNote['time'] += e['start'] # add event start time to note start times
+        tracks[e['track_id']]['notes'].append(newNote)
     else:
       if e['track_id'] not in tracks.keys(): # set up a new track if needed
         tracks[e['track_id']] = {'type':'audio'}
