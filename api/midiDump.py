@@ -139,7 +139,8 @@ def decodeEventHeader(header):
   lengthAddr = 0x72 + nameLength
   startOffset, = struct.unpack("<L", header[startOffsetAddr:startOffsetAddr+4])
   length, = struct.unpack("<L", header[lengthAddr:lengthAddr+4])
-  return {"length":length,"start_offset":startOffset}
+  return {"length":length, "start_offset":startOffset,\
+      "region_name":header[0x36:0x36+nameLength].strip('\x00')}
 
 def decodeEventBody(body, startOffset):
   """
@@ -260,6 +261,8 @@ def assembleTracks(pd, events):
         notes = loopNotes(notes, header['length'], e['loop_time'])
       if e['track_id'] not in tracks.keys(): # set up a new track if needed
         tracks[e['track_id']] = {'notes':[], 'type':'instrument'}
+      # Might adapt this later to return logical region structure rather than markers
+      tracks[e['track_id']]['notes'].append({'region_name':header['region_name'],'time':e['start']})
       for n in notes:
         n['time'] += e['start'] # add event start time to note start times
         tracks[e['track_id']]['notes'].append(n)
