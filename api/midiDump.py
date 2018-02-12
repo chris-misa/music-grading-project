@@ -237,9 +237,9 @@ def loopNotes(notes, length, loopDuration):
 
 def assembleTracks(pd, events):
   """
-    Performs lookups, translations, and grouping of a list of event dictionaries
-    Events are merged into their tracks using the above crop function to handle notes
-    which don't actually fall into the event
+    Performs lookups, translations, and grouping of a list of region dictionaries
+    Regions are merged into their tracks using the above crop function to handle notes
+    which don't actually fall into the region boundaries.
     Returns a list of track dictionaries
   """ 
   tracks = {}
@@ -257,15 +257,20 @@ def assembleTracks(pd, events):
       header = decodeEventHeader(h)
       notes = decodeEventBody(b, header['start_offset'])
       notes = cropNotes(notes, header['length'])
+      regionLength = header['length']
       if e['loop_time'] != None:
         notes = loopNotes(notes, header['length'], e['loop_time'])
-      if e['track_id'] not in tracks.keys(): # set up a new track if needed
-        tracks[e['track_id']] = {'notes':[], 'type':'instrument'}
-      # Might adapt this later to return logical region structure rather than markers
-      tracks[e['track_id']]['notes'].append({'region_name':header['region_name'],'time':e['start']})
+        regionLength = e['loop_time']
+      # set up a new track if needed
+      if e['track_id'] not in tracks.keys():
+        tracks[e['track_id']] = {'notes':[], 'type':'instrument', 'regions':[]}
+      # Add notes
       for n in notes:
         n['time'] += e['start'] # add event start time to note start times
         tracks[e['track_id']]['notes'].append(n)
+      # Add region info
+      tracks[e['track_id']]['regions'].append({'name':header['region_name'], \
+          'start':e['start'], 'length':regionLength})
     else:
       if e['track_id'] not in tracks.keys(): # set up a new track if needed
         tracks[e['track_id']] = {'type':'audio'}
