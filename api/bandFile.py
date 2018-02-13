@@ -50,7 +50,7 @@ ccl_bplist.py, CCL Forensics
 arr.py
 drummer.py
 midiDump.py
-getGain.py
+trackInfo.py
 midiDump.py
 trans.py
 
@@ -67,7 +67,7 @@ import ccl_bplist
 import arr
 import drummer
 import midiDump
-import getGain
+import trackInfo
 import trans
 
 def load(filepath):
@@ -95,7 +95,7 @@ def load(filepath):
   result["audio_loops"] = getAudioLoops(projectData)
   result["tracks"] = getTracks(projectData)
   result["arrangement_visible"] = getArrShown(displayState)
-  result["inst_1_gain"] = getInstGain(projectData)
+  result["inst_1_info"] = getInstInfo(projectData)
   result["transposition"] = getTrans(projectData)
   return result
 
@@ -189,12 +189,12 @@ def getTracks(pd):
   """
   return midiDump.getTracks(pd)
 
-def getInstGain(pd):
+def getInstInfo(pd):
   """
     Returns the gain parameter of the first gain plugin found
     on the Inst 1 instrument channel as a float.
   """
-  return getGain.getGain(pd, "Inst 1")
+  return trackInfo.getTrackInfo(pd, "Inst 1")
 
 def getTrans(pd):
   """
