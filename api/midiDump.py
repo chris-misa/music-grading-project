@@ -103,10 +103,11 @@ def decodeArrEvent(e):
   eventType, startTime, trackID, loopTime, eventID = \
      struct.unpack("<H 2x L 12x B 7x L 4s", e[0:36])
   loopTime = loopTime if loopTime != NO_LOOP_VALUE else None
+  loopTag = e[0x2c] if eventType == 36 else None
   # Normalize start times
   startTime -= EVENT_START_TIME_OFFSET
   return {"type":eventType, "start":startTime, "track_id":trackID, \
-          "loop_time":loopTime, "id":eventID}
+          "loop_time":loopTime, "id":eventID, "loop_tag":loopTag}
 
 #
 # Finding and interpriting Event headers and bodies
@@ -272,9 +273,14 @@ def assembleTracks(pd, events):
         newNote = copy.copy(n)
         newNote['time'] += e['start'] # add event start time to note start times
         tracks[e['track_id']]['notes'].append(newNote)
+    elif e['type'] == 36: # Audio event
+      # set up a new track if needed
+      if e['track_id'] not in tracks.keys():
+        tracks[e['track_id']] = {'type':'audio', 'regions':[]}
+      tracks[e['track_id']]['regions'].append({'start':e['start'],\
+                'loop_time':e['loop_time'],'id':e['id'], 'loop_tag':e['loop_tag']})
     else:
-      if e['track_id'] not in tracks.keys(): # set up a new track if needed
-        tracks[e['track_id']] = {'type':'audio'}
+      print("Unknown track type: {}".format(e['type']))
   # Add track labels and convert tracks into list
   labels = collectTrackLabels(pd)
   for i, l in enumerate(labels):
