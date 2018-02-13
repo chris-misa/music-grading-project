@@ -97,6 +97,7 @@ def load(filepath):
   result["arrangement_visible"] = getArrShown(displayState)
   result["inst_1_info"] = getInstInfo(projectData)
   result["transposition"] = getTrans(projectData)
+  result["default_master_track"] = defaultMasterTrack(projectData)
   return result
 
 #  
@@ -201,6 +202,15 @@ def getTrans(pd):
     Returns list of transposition events
   """
   return trans.decodeTransChunk(trans.getTransChunk(pd))
+
+def defaultMasterTrack(pd):
+  """
+    Returns true if the master track is still using default settings
+  """
+  masterAddr = pd.find("Output 1-2")
+  startAddr = pd.find("\x55\x43\x75\x41\x01\x00\x0e", masterAddr)
+  endAddr = pd.find("\x55\x43\x75\x41\x01\x00\x0e", startAddr + 7)
+  return pd.find("Default", startAddr, endAddr) != -1
 
 #
 # DisplayState.plist reading functions
