@@ -175,6 +175,22 @@ def decodeEventBody(body, startOffset):
   return notes
 
 #
+# Functions for healing with audio loops
+############################################################
+
+LFUAHeader = b"\x6c\x46\x75\x41\x01\x00\x0b\x00\x00\x00"
+LFUATag = b"\x4c\x46\x55\x41\x01\x11"
+PMOCTag = b"\x50\x4d\x4f\x43"
+def getLoopName(pd, tag):
+  """
+    Look up the name of the loop with the given tag
+  """
+  headerAddr = pd.find(LFUAHeader + tag)
+  LFUAAddr = pd.find(LFUATag, headerAddr)
+  PMOCAddr = pd.find(PMOCTag, LFUAAddr)
+  return pd[LFUAAddr + 10:PMOCAddr].strip("\x00")
+
+#
 # Auxilary functions for dealing with GarageBand features
 #############################################################
 
@@ -278,7 +294,8 @@ def assembleTracks(pd, events):
       if e['track_id'] not in tracks.keys():
         tracks[e['track_id']] = {'type':'audio', 'regions':[]}
       tracks[e['track_id']]['regions'].append({'start':e['start'],\
-                'loop_time':e['loop_time'],'id':e['id'], 'loop_tag':e['loop_tag']})
+                'loop_time':e['loop_time'],
+                'loop_name':getLoopName(pd, e['loop_tag'])})
     else:
       print("Unknown track type: {}".format(e['type']))
   # Add track labels and convert tracks into list
