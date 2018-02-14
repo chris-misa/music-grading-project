@@ -1,7 +1,13 @@
 """
+
+bandFile.py, a mini GarageBand API
+****************************************
+
 Author: Chris Misa, cmisa@cs.uoregon.edu
+****************************************
 
 Description:
+****************************************
 
 Read a .band file created by Apple's GarageBand.
 Convert certain information from the ProjectData
@@ -20,20 +26,33 @@ Keys of the resulting dict include:
 "drummer" -> Returns a list of character identifiers for all drummers in the project
              These identifiers seem to be mapped to drummer names as presented to user.
 "audio_loops" -> Returns a list of audio apple loops used in the project.
-"inst_tracks" -> Returns a list of the preset used to create each instrument track
-                 in the project.  Each list element is a tuple with form
-                 (track number, preset, channel strip gain)
-                 Currently the gain is expressed as the raw 4-byte int used by
-                 GarageBand internally.
-                 FIGURE OUT HOW THIS MAPS TO +/- DB.
-                 ADD CHECK FOR GAIN PLUGIN.
+"tracks" -> Returns a dict of tracks including note data. See midiDump.py for more detail.
+"inst_1_gain" -> Returns the gain of the gain plug in on Inst 1 as float or None
+"transposition" -> A list of transposition events, each a dictionary with keys
+                    "time", "value"
+
+
+If run as standalone, loads first arugment as GarageBand file and prints the
+above information on stdout.
+
+
+Work Points:
+****************************************
+
+-> Some track names seem to retain the "Inst N" format and probably can be resolved
+to the corresponding Inst chunk.
+
 
 Dependencies:
+****************************************
 
 ccl_bplist.py, CCL Forensics
 arr.py
 drummer.py
-tracklist.py
+midiDump.py
+trackInfo.py
+midiDump.py
+trans.py
 
 """
 
@@ -41,11 +60,15 @@ import mmap
 import os
 import struct
 import io
+import pprint
+import sys
 
 import ccl_bplist
 import arr
 import drummer
-import tracklist
+import midiDump
+import trackInfo
+import trans
 
 def load(filepath):
   try:
@@ -58,6 +81,11 @@ def load(filepath):
   except OSError as error:
     print("Failed to load MetaData.plist for project at {}".format(filepath))
     return
+  try:
+    displayState = getDisplayState(filepath)
+  except OSError as error:
+    print("Failed to load MetaData.plist for project at {}".format(filepath))
+    return
   result = {}
   result["key"] = getKey(metaData)
   result["gender"] = getGender(metaData)
@@ -65,7 +93,11 @@ def load(filepath):
   result["arrangement"] = getArrangement(projectData)
   result["drummer"] = getDrummer(projectData)
   result["audio_loops"] = getAudioLoops(projectData)
-  result["inst_tracks"] = getInstTracks(projectData)
+  result["tracks"] = getTracks(projectData)
+  result["arrangement_visible"] = getArrShown(displayState)
+  result["inst_1_info"] = getInstInfo(projectData)
+  result["transposition"] = getTrans(projectData)
+  result["default_master_track"] = defaultMasterTrack(projectData)
   return result
 
 #  
@@ -85,6 +117,13 @@ def getMetaData(fp):
   """Returns MetaData.plist as a python object via ccl_bplist"""
   mdPath = os.path.join(fp, PATH_TO_PROJECT, "MetaData.plist")
   with open(mdPath) as f:
+    pl = ccl_bplist.load(f)
+    return pl
+
+def getDisplayState(fp):
+  """Returns DisplayState.plist as a pythong object via ccl_bplist"""
+  dsPath = os.path.join(fp, PATH_TO_PROJECT, "DisplayState.plist")
+  with open(dsPath) as f:
     pl = ccl_bplist.load(f)
     return pl
 
@@ -144,9 +183,52 @@ def getAudioLoops(pd):
   return loops
 
 
-def getInstTracks(pd):
+def getTracks(pd):
   """Returns a list with info about each instrument track as tuples:
      (track number, base preset name, gain).
      Requires tracklist to be imported
   """
-  return tracklist.getTrackList(pd)
+  return midiDump.getTracks(pd)
+
+def getInstInfo(pd):
+  """
+    Returns the gain parameter of the first gain plugin found
+    on the Inst 1 instrument channel as a float.
+  """
+  return trackInfo.getTrackInfo(pd, "Inst 1")
+
+def getTrans(pd):
+  """
+    Returns list of transposition events
+  """
+  return trans.decodeTransChunk(trans.getTransChunk(pd))
+
+def defaultMasterTrack(pd):
+  """
+    Returns true if the master track is still using default settings
+  """
+  masterAddr = pd.find("Output 1-2")
+  startAddr = pd.find("\x55\x43\x75\x41\x01\x00\x0e", masterAddr)
+  endAddr = pd.find("\x55\x43\x75\x41\x01\x00\x0e", startAddr + 7)
+  return pd.find("Default", startAddr, endAddr) != -1
+
+#
+# DisplayState.plist reading functions
+#
+
+ARR_STATE_VIS_OFFSET = 0x28
+ARR_STATE_VIS_SHOWN = "\x41"
+ARR_STATE_VIS_HIDDEN = "\x23"
+def getArrShown(ds):
+  """
+    Pulls out the visibility of the arrangement track
+    from the given decoded plist
+  """
+  arrData = ds['screensetDictArray'][0]['layoutDictArray'][0]['docwWindowState']['udataArrange']
+  return arrData[ARR_STATE_VIS_OFFSET] == ARR_STATE_VIS_SHOWN
+
+def main():
+  pprint.pprint(load(sys.argv[1]))
+
+if __name__ == "__main__":
+  main()

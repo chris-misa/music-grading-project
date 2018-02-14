@@ -1,31 +1,44 @@
-#
-# Attempts to pull out information about the arragement markers
-#
-# If standalone, first argument is path to grageband project
+"""
+ Attempts to pull out information about the arragement markers
 
-# Still need to translate rtf formating and remove last char of plain formated
-# in decodeTextChunk
+ If standalone, first argument is path to grageband project
 
-# Length is in some wierd units: probably 1/4 of beats?
-# This will need to be translated via time signature into measures. . .
+ Still need to translate rtf formating and remove last char of plain formated
+ in decodeTextChunk
+
+ Length is in some wierd units: probably 1/4 of beats?
+ This will need to be translated via time signature into measures. . .
+"""
 
 import sys
 import mmap
 import struct
+import re
 
 START_ARR_TAG = "\x71\x53\x76\x45\x01\x00\x05"
 END_ARR_TAG = "\xf1\x00\x00\x00\xff\xff\xff\x3f"
 
 START_TXT_TAG = "\x71\x53\x78\x54\x01\x00\x20\x00\x00\x00"
 
+def stripRTF(txt):
+  """
+    Crude function to strip rtf control words and groups
+  """
+  txt = re.sub(r"[\n]", "", txt)
+  txt = re.sub(r"\{.*\}", "", txt)
+  txt = re.sub(r"\\\S*\s", "", txt)
+  return txt
+
 # Converts a text chunk given as a byte string
 # returns a tuple with key, text
 def decodeTextChunk( textChunk ):
   key, = struct.unpack("<I", textChunk[10:14])
   size, = struct.unpack("<I", textChunk[28:32])
-  kind = textChunk[60]
-  text = textChunk[0x48:size+36]
-  # add rtf translation if kind == 13
+  kind, = struct.unpack("B", textChunk[60])
+  text = textChunk[0x48:size+36].strip("\x00}")
+  # Translate rtf if needed
+  if kind == 0x13:
+    text = stripRTF(text)
   return {key : text}
   
 
