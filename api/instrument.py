@@ -2,6 +2,11 @@
   Get general information about instrument patch categories by finding
   them in the GarageBand instrument patch directories.
 
+  Notes:
+    sometimes apple loops will load presets not found in main GarageBand
+    preset directories. In this case we should be able to look for metadata
+    about the loop instead.
+
   Improvements:
     reload the pickle if it doesn't exists
 """

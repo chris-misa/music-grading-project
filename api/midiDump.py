@@ -15,6 +15,7 @@ import argparse
 import heapq
 import copy
 import re
+import instrument
 
 import midi
 
@@ -307,8 +308,10 @@ def assembleTracks(pd, events):
     if i+1 not in tracks.keys():
       tracks[i+1] = {'type':'empty'}
     label, tag = l
+    keywords = instrument.getInstrument(label)
     tracks[i+1]["label"] = label
     tracks[i+1]["tag"], = struct.unpack("<H", tag)
+    tracks[i+1]["keywords"] = keywords
   return tracks
   
 #  
