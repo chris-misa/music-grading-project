@@ -29,8 +29,10 @@ def check_white_keys(seq):
 			track = seq[i]["notes"]
 
 			for note in track:
+        
+        p = note["pitch"] % 12
 
-				if note["pitch"] == 1 or note["pitch"] == 3 or note["pitch"] == 6 or note["pitch"] == 8 or note["pitch"] == 10:
+				if p == 1 or p == 3 or p == 6 or p == 8 or p == 10:
 					all_white = False
 					break
 
@@ -68,7 +70,6 @@ def check_one_note(seq):
 			break
 	return one_note
 
-				
 
 
 def main():
@@ -83,5 +84,6 @@ def main():
 	# 4
 	print check_one_note(tracks)
 
-main()
+if __name__ == "__main__":
+  main()
 
