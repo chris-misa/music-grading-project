@@ -49,17 +49,26 @@ def getInstrumentPatches():
         patches[name].append(word)
   return patches
 
-def dumpInstruments(fp = PICKLE_TARGET):
+def getPicklePath():
+  """
+    Returns a path to the pickle regardless of who is calling
+  """
+  d, f = os.path.split(__file__)
+  return os.path.join(d, PICKLE_TARGET)
+
+def dumpInstruments():
   """
     Pickles a dictionary of GarageBand instruments at the given filepath
   """
+  fp = getPicklePath()
   with open(fp,'w') as f:
     pickle.dump(getInstrumentPatches(), f)
 
-def loadInstruments(fp = PICKLE_TARGET):
+def loadInstruments():
   """
     Unpickles and returns stored GarageBand instruments dictionary
   """
+  fp = getPicklePath()
   with open(fp,"r") as f:
     return pickle.load(f)
 
