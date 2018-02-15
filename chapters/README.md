@@ -14,5 +14,5 @@ def test(filepath):
     Open the garageband file at the given file path.
     Run this chapter's tests on this file.
     Return a string for the grader:
-      "Pass" or "Failed <specific point of failure>"
+      "Pass" or "Fail: <specific point of failure>"
       
