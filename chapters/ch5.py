@@ -2,6 +2,7 @@ import sys
 sys.path.append("../api")
 
 import midiDump as md
+import utilities as ut
 
 def quantize_rhythm(seq, quantum = 120):
 
@@ -18,6 +19,27 @@ def quantize_rhythm(seq, quantum = 120):
 
 	return seq
 
+def is_quantized(seq, quantum = 120):
+
+	quantized = True
+
+	for i in seq.keys():
+
+		track_is_quantized = True
+
+		if "notes" in seq[i] and track_is_quantized:
+
+			track = seq[i]["notes"]
+
+			for note in track:
+
+				if note["duration"] != note["duration"] / quantum * quantum or note["time"] != note["time"] / quantum * quantum:
+					quantized = False
+					track_is_quantized = False
+					break			
+					
+	return quantized
+
 def check_white_keys(seq):
 
 	all_white = True
@@ -29,8 +51,8 @@ def check_white_keys(seq):
 			track = seq[i]["notes"]
 
 			for note in track:
-        
-        p = note["pitch"] % 12
+
+				p = note["pitch"] % 12
 
 				if p == 1 or p == 3 or p == 6 or p == 8 or p == 10:
 					all_white = False
@@ -43,7 +65,7 @@ def in_range(seq):
 
 	all_in_range = True
 
-	melody = track = seq[1]["notes"]
+	melody = seq[1]["notes"]
 
 	for note in melody:
 
@@ -71,10 +93,40 @@ def check_one_note(seq):
 	return one_note
 
 
+def check_for_motifs(seq):
+
+	repetition = False
+
+	melody_regions = seq[1]["regions"]
+
+	length = len(melody_regions)
+
+	for i in range(length):
+		for j in range(i+1, length):
+
+			if ut.are_equal(melody_regions[i], melody_regions[j]):
+
+				repetition = True
+				return repetition
+
+def test(filepath):
+
+	tracks = md.makeTracks(filepath)
+
+	if is_quantized(tracks) and check_white_keys(tracks) and in_range(tracks) and check_one_note(tracks) and check_for_motifs(tracks):
+		return True
+	else:
+		return False
+
+			
+
+
+
+
 
 def main():
 	# 1
-	tracks = md.makeTracks("5.6 Right.band")
+	tracks = md.makeTracks("../tests/5.6 Right.band")
 	quantized_tracks = quantize_rhythm(tracks)
 	md.writeToMIDIFile(quantized_tracks, "quantized.mid")
 	# 2
@@ -83,6 +135,8 @@ def main():
 	print in_range(tracks)
 	# 4
 	print check_one_note(tracks)
+	# 5
+	print check_for_motifs(tracks)
 
 if __name__ == "__main__":
   main()
