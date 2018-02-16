@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../api")
 import bandFile
+from errors import TestError, TestCode
 
 """
   Test garageband files against chapter 2 rubric
@@ -29,14 +30,22 @@ def test(fp):
   """
     Runs chapter 2 tests against the given garageband project
   """
+
+  failedCodes = []
   bf = bandFile.load(fp)
   if not hasAnInstrument(bf):
-    return "Fail: 2.1, no software instrument found"
-  elif bf['metronome']:
-    return "Fail: 2.2, metronome is on"
-  elif not hasGoodKey(bf):
-    return "Fail: 2.3, key is not accepted: " + bf['key'] + " " + bf['gender']
-  return "Pass"
+    failedCodes.append(TestCode(2,1,description = "no software instrument found"))
+
+  if bf['metronome']:
+    failedCodes.append(TestCode(2,2, description = "metronome is on"))
+
+  if not hasGoodKey(bf):
+    failedCodes.append(TestCode(2,3, description = " key is not accepted: " + bf['key'] + " " + bf['gender']))
+
+  if failedCodes:
+    raise TestError(failedCodes)
+  else:
+    return True
 
 def main():
   """

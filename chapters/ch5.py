@@ -3,21 +3,25 @@ sys.path.append("../api")
 
 import midiDump as md
 import utilities as ut
+from errors import TestError, TestCode
+from copy import deepcopy
 
 def quantize_rhythm(seq, quantum = 120):
 
-	for i in seq.keys():
+	seq_copy = deepcopy(seq)
 
-		if "notes" in seq[i]:
+	for i in seq_copy.keys():
 
-			track = seq[i]["notes"]
+		if "notes" in seq_copy[i]:
+
+			track = seq_copy[i]["notes"]
 
 			for note in track:
 
 				note["duration"] = note["duration"] / quantum * quantum
 				note["time"] = note["time"] / quantum * quantum
 
-	return seq
+	return seq_copy
 
 def is_quantized(seq, quantum = 120):
 
@@ -109,14 +113,31 @@ def check_for_motifs(seq):
 				repetition = True
 				return repetition
 
-def test(filepath):
+def test(fp):
 
-	tracks = md.makeTracks(filepath)
+	tracks = md.makeTracks(fp)
+	failedCodes = []
 
-	if is_quantized(tracks) and check_white_keys(tracks) and in_range(tracks) and check_one_note(tracks) and check_for_motifs(tracks):
-		return True
-	else:
-		return False
+	if not check_for_motifs(tracks):
+		failedCodes.append(TestCode(5,2,description = "no repetition or motifs"))
+
+	if not is_quantized(tracks):
+		failedCodes.append(TestCode(5,4,description = "notes are not quantized"))
+
+	if not check_one_note(tracks):
+		failedCodes.append(TestCode(5,5,description = "there are simultaneuous notes"))
+
+	if not check_white_keys(tracks):
+		failedCodes.append(TestCode(5,6,description = "notes are not all white"))
+
+	if not in_range(tracks):
+		failedCodes.append(TestCode(5,7,description = "notes are not all in range"))
+
+
+	if failedCodes:
+		raise TestError(failedCodes)
+ 	else:
+ 		return True
 
 			
 
@@ -125,7 +146,10 @@ def test(filepath):
 
 
 def main():
-	# 1
+	"""
+    Main for testing
+	"""
+
 	tracks = md.makeTracks("../tests/5.6 Right.band")
 	quantized_tracks = quantize_rhythm(tracks)
 	md.writeToMIDIFile(quantized_tracks, "quantized.mid")
@@ -137,6 +161,10 @@ def main():
 	print check_one_note(tracks)
 	# 5
 	print check_for_motifs(tracks)
+
+	print(test(sys.argv[1]))
+
+	
 
 if __name__ == "__main__":
   main()
