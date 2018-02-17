@@ -6,6 +6,19 @@ import utilities as ut
 from errors import TestError, TestCode
 from copy import deepcopy
 
+
+def check_2_4_bar_regions(seq, tpqn = 480):
+
+	for i in seq.keys():
+		if "regions" in seq[i]:
+			regions = seq[i]["regions"]
+
+			for region in regions:
+				if "length" in region:
+					if not (region["length"] == (4*tpqn) or region["length"] == (2*tpqn)):
+						return False
+	return True
+
 def quantize_rhythm(seq, quantum = 120):
 
 	seq_copy = deepcopy(seq)
@@ -118,8 +131,13 @@ def test(fp):
 	tracks = md.makeTracks(fp)
 	failedCodes = []
 
+	if not check_2_4_bar_regions(tracks):
+		failedCodes.append(TestCode(5,1,description = "regions are not 2 or 4 bars long"))
+
 	if not check_for_motifs(tracks):
 		failedCodes.append(TestCode(5,2,description = "no repetition or motifs"))
+
+	### What is verse chorus structure at this point?
 
 	if not is_quantized(tracks):
 		failedCodes.append(TestCode(5,4,description = "notes are not quantized"))
@@ -153,13 +171,13 @@ def main():
 	tracks = md.makeTracks("../tests/5.6 Right.band")
 	quantized_tracks = quantize_rhythm(tracks)
 	md.writeToMIDIFile(quantized_tracks, "quantized.mid")
-	# 2
+	
 	print check_white_keys(tracks)
-	# 3
+	
 	print in_range(tracks)
-	# 4
+	
 	print check_one_note(tracks)
-	# 5
+	
 	print check_for_motifs(tracks)
 
 	print(test(sys.argv[1]))
