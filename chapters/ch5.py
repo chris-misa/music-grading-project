@@ -5,19 +5,42 @@ import midiDump as md
 import utilities as ut
 from errors import TestError, TestCode
 from copy import deepcopy
-
+import bandFile as bf
 
 def check_2_4_bar_regions(seq, tpqn = 480):
 
-	for i in seq.keys():
-		if "regions" in seq[i]:
-			regions = seq[i]["regions"]
+	melody = seq[1]["regions"]
 
-			for region in regions:
-				if "length" in region:
-					if not (region["length"] == (4*tpqn) or region["length"] == (2*tpqn)):
-						return False
+	for region in melody:
+		if "length" in region:
+			length = region["length"]
+			if not (length == (4*4*tpqn) or length == (2*4*tpqn)):
+
+				return False
 	return True
+
+def check_verse_chorus(seq, verse_measures, tpqn = 480):
+
+	melody = seq[1]["notes"]
+
+	index = 0
+	for note in melody:
+		time = note["time"]
+		if time >= verse_measures*4*tpqn:
+			index = melody.index(note)
+			break
+
+	verse = melody[0:index]
+	chorus = melody[index:]
+
+	def are_equal(seg1, seg2):
+		if len(seg1) == len(seg2):
+			for i in range(len(seg1)):
+				if seg1[i]["pitch"] != seg2[i]["pitch"]:
+					return False
+		return True
+	return are_equal(verse, chorus)
+
 
 def quantize_rhythm(seq, quantum = 120):
 
@@ -129,15 +152,19 @@ def check_for_motifs(seq):
 def test(fp):
 
 	tracks = md.makeTracks(fp)
+
 	failedCodes = []
 
-	if not check_2_4_bar_regions(tracks):
+	if not check_2_4_bar_regions(tracks, tpqn = 960):
 		failedCodes.append(TestCode(5,1,description = "regions are not 2 or 4 bars long"))
 
 	if not check_for_motifs(tracks):
 		failedCodes.append(TestCode(5,2,description = "no repetition or motifs"))
 
 	### What is verse chorus structure at this point?
+	verse_measures = bf.load(fp)['arrangement'][0][1]
+	if check_verse_chorus(tracks, 8, tpqn = 960):
+		failedCodes.append(TestCode(5,4,description = "verse and melody are the same"))
 
 	if not is_quantized(tracks):
 		failedCodes.append(TestCode(5,4,description = "notes are not quantized"))
@@ -156,11 +183,6 @@ def test(fp):
 		raise TestError(failedCodes)
  	else:
  		return True
-
-			
-
-
-
 
 
 def main():
