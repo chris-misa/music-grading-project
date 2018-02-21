@@ -10,7 +10,7 @@ T : trivial, E : easy, M : medium
 | | | | |
 | 3.1. | Verse 1 and Chorus 1 arrangement markers should be in the Arrangement track, each 8 measures long. | T
 | 3.2. | There should be a Drummer track, and it should have a Verse 1 region and a Chorus 1 region, corresponding with the arrangement markers. | E
-| | | | |
+| | | |Done |
 | 4.1. | There should be a total of five instrument tracks in the following order: 1) "Classic Electric Piano", 2) Drummer, 3) track generated with loop from Bass Instrument category of Loop Browser, 4) track generated with loop from Piano, Synths,  Elec Piano, Organ, Guitars, or Clavinet Instrument category of Loop Browser, 5) track generated with loop from any Instrument category of Loop Browser other than Bass. | M
 | 4.2. | Track 1 should be empty. | E
 | 4.3. | Tracks 3 and 4 should have software instrument loops only. | E
