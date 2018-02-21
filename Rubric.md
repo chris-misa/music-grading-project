@@ -4,9 +4,9 @@ T : trivial, E : easy, M : medium
 
 | Chapt | Description | Difficulty | Status |
 | :---  | --- | :---: | --- |
-| 2.1. | A Software Instrument track should be created. | T 
-| 2.2. | The metronome should be turned off. | T
-| 2.3. | The Key of the song should be chosen, and set to either C major, G major, or A minor. | T
+| 2.1. | A Software Instrument track should be created. | T | Done
+| 2.2. | The metronome should be turned off. | T | Done
+| 2.3. | The Key of the song should be chosen, and set to either C major, G major, or A minor. | T | Done
 | | | | |
 | 3.1. | Verse 1 and Chorus 1 arrangement markers should be in the Arrangement track, each 8 measures long. | T
 | 3.2. | There should be a Drummer track, and it should have a Verse 1 region and a Chorus 1 region, corresponding with the arrangement markers. | E
