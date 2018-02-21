@@ -4,9 +4,9 @@ T : trivial, E : easy, M : medium
 
 | Chapt | Description | Difficulty | Status |
 | :---  | --- | :---: | --- |
-| 2.1. | A Software Instrument track should be created. | T 
-| 2.2. | The metronome should be turned off. | T
-| 2.3. | The Key of the song should be chosen, and set to either C major, G major, or A minor. | T
+| 2.1. | A Software Instrument track should be created. | T | Done
+| 2.2. | The metronome should be turned off. | T | Done
+| 2.3. | The Key of the song should be chosen, and set to either C major, G major, or A minor. | T | Done
 | | | | |
 | 3.1. | Verse 1 and Chorus 1 arrangement markers should be in the Arrangement track, each 8 measures long. | T
 | 3.2. | There should be a Drummer track, and it should have a Verse 1 region and a Chorus 1 region, corresponding with the arrangement markers. | E
@@ -19,9 +19,9 @@ T : trivial, E : easy, M : medium
 | 4.6. | Loop regions should be looped as necessary so that they are 8 measures long, lasting for the entire section. | E
 | 4.7. | Loops should be modified as necessary, with dissonances changed to consonances. | T
 | | | | |
-| 5.1. | The Classic Electric Piano track's Gain plug-in should be between +5 and +15db. | T
-| 5.2. | The Classic Electric Piano track (melody) should have
-| 5.2.1. | 2 or 4 bar regions only, | E
+| 5.1. | The Classic Electric Piano track's Gain plug-in should be between +5 and +15db. | T | Andrew
+| 5.2. | The Classic Electric Piano track (melody) should have | | Andrew
+| 5.2.1. | 2 or 4 bar regions only, | E | 
 | 5.2.2. | some repetition of regions, | M
 | 5.2.3. | different melodies for verse and chorus, | M
 | 5.2.4. | quantized attacks, | E
