@@ -59,6 +59,7 @@ def decodeArrEvents( arrChunk ):
   for e in chunks:
     key, = struct.unpack("<I", e[0x10:0x14])
     length, = struct.unpack("<Q", e[0x1D:0x25])
+    length /= 15
     events.append((key, length))
 
   return events
