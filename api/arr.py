@@ -58,8 +58,7 @@ def decodeArrEvents( arrChunk ):
   events = []
   for e in chunks:
     key, = struct.unpack("<I", e[0x10:0x14])
-    length, = struct.unpack("<Q", e[0x1D:0x25])
-    length /= 15
+    length, = struct.unpack("<I", e[0x1C:0x20])
     events.append((key, length))
 
   return events
@@ -87,7 +86,6 @@ def getArr(pd):
     text = texts[tag].strip("\x00")
     result.append((text, length))
   return result
-  
 
 def main():
   # Load ProjectData file into an mmap
