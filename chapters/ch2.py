@@ -14,7 +14,7 @@ def hasAnInstrument(bf):
     for one of the tracks.  Since keywords can only be found for instrument tracks,
     this should work.
   """
-  for k, v in bf['tracks'].items():
+  for _, v in bf['tracks'].items():
     if v['keywords'] != None:
       return True
   return False
