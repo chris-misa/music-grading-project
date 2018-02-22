@@ -67,6 +67,16 @@ def trackOneIsEmpty(bf):
     return len(bf['tracks'][1]['regions']) == 0
   return True
 
+def trackThreeFourInst(bf):
+  """
+    Returns true is track three and four are instument tracks
+  """
+  if bf['tracks'][3]['type'] != "instrument":
+    return False
+  if bf['tracks'][4]['type'] != "instrument":
+    return False
+  return True
+
 def test(fp):
   """
     Runs chapter 4 tests against the given gb project
@@ -78,6 +88,9 @@ def test(fp):
 
   if not trackOneIsEmpty(bf):
     failedCodes.append(TestCode(4,2,description="Track one is not empty"))
+
+  if not trackThreeFourInst(bf):
+    failedCodes.append(TestCode(4,3,description="Track three of four does not have a software instrument loop"))
 
   if failedCodes:
     raise TestError(failedCodes)
