@@ -19,15 +19,15 @@ T : trivial, E : easy, M : medium
 | 4.6. | Loop regions should be looped as necessary so that they are 8 measures long, lasting for the entire section. | E
 | 4.7. | Loops should be modified as necessary, with dissonances changed to consonances. | T
 | | | | |
-| 5.1. | The Classic Electric Piano track's Gain plug-in should be between +5 and +15db. | T | Andrew
-| 5.2. | The Classic Electric Piano track (melody) should have | | Andrew
-| 5.2.1. | 2 or 4 bar regions only, | E | 
-| 5.2.2. | some repetition of regions, | M
-| 5.2.3. | different melodies for verse and chorus, | M
-| 5.2.4. | quantized attacks, | E
-| 5.2.5. | no simultaneous attacks, | E
-| 5.2.6. | all melody notes should be on white keys, | T
-| 5.2.7. | melodic notes should be in range C3 -> F4. | T
+| 5.1. | The Classic Electric Piano track's Gain plug-in should be between +5 and +15db. | T | Done
+| 5.2. | The Classic Electric Piano track (melody) should have | | Done
+| 5.2.1. | 2 or 4 bar regions only, | E | Done
+| 5.2.2. | some repetition of regions, | M | Done
+| 5.2.3. | different melodies for verse and chorus, | M | Done
+| 5.2.4. | quantized attacks, | E  | Done
+| 5.2.5. | no simultaneous attacks, | E | Done
+| 5.2.6. | all melody notes should be on white keys, | T | Done
+| 5.2.7. | melodic notes should be in range C3 -> F4. | T | Done
 | | | | |
 | 6.1. | The form of your song should be as follows, with 8 measures per section (except where indicated) and arrangement markers for all sections: 1) Intro (4 measures), 2) Verse 1, 3) Verse 2, 4) Chorus 1, 5) Verse 3, 6) Chorus 2, 7) Bridge, 8) Chorus 3, 9) Outro | E
 | | | | |
