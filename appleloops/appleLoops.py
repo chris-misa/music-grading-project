@@ -25,13 +25,15 @@ Chris Misa, chris@chrismisa.com
 """
 
 import sqlite3
+import os
 
 class Database:
   """
     Class to handle operations in the apple loops database.
   """
   # Default name of database file
-  DB_NAME = "appleloops.sqlite3"
+  
+  DB_NAME = os.path.join(os.path.split(__file__)[0], "appleloops.sqlite3")
   # List of columns and types as per current database schema
   COLUMNS = {"filename":"text", "category":"text", "subcategory":"text", \
           "genre":"text", "descriptors":"text", "time_signature":"text", \

@@ -88,12 +88,17 @@ def trackFiveHasCorrectLoop(bf):
   # Fine is it's an instrument track
   if track['type'] == "instrument":
     return True
-  # Fail if there are no regions
-  if 'regions' not in track.keys():
+  elif track['type'] == "audio":
+    # Fail if there are no regions
+    if 'regions' not in track.keys():
+      return False
+    # Else check that each region qualifies
+    for r in track['regions']:
+      metadata = appleLoops.getLoopMetadata(r['name'])
+      print("looking for: " + r['name'] + " got: " + str(metadata))
+  else:
+    # Not instrument or audio track
     return False
-  # Else check that each region qualifies
-  for r in track['regions']:
-    appleLoops.getLoopMetadata()
   
 
 def test(fp):
@@ -110,6 +115,9 @@ def test(fp):
 
   if not trackThreeFourInst(bf):
     failedCodes.append(TestCode(4,3,description="Track three of four does not have a software instrument loop"))
+  
+  if not trackFiveHasCorrectLoop(bf):
+    failedCodes.append(TestCode(4,4,description="Wrong type of loop in track five"))
 
   if failedCodes:
     raise TestError(failedCodes)
