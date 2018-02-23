@@ -2,6 +2,7 @@ import sys
 sys.path.append("../api")
 
 import midiDump as md
+from copy import deepcopy
 
 '''
 Functions to find which regions are the same
@@ -43,7 +44,7 @@ def get_note_seq(region):
 
 	seq = []
 
-	for note in region["notes"]:
+	for note in region:
 
 		seq.append(note["pitch"])
 
@@ -55,7 +56,7 @@ def get_duration_seq(region):
 
     seq = []
 
-    for note in quantized["notes"]:
+    for note in quantized:
         seq.append(note["duration"])
 
     return seq
@@ -63,7 +64,7 @@ def get_duration_seq(region):
 
 def quantize_rhythm(region, quantum = 120):
 
-	seq = region["notes"]
+	seq = region
 
 	for note in seq:
 
@@ -90,6 +91,32 @@ def are_equal(region1, region2, min_distance_notes = 2, min_distance_dur = 5):
     return False
 
 
+# returns the region from a beginning measure to an end measure. Returns -1 if such a region does not exist
+def grab_section(note_seq, measure_beg, measure_dur, tpqn = 480):
+
+    index_beg = -1
+    index_end = -1
+
+    tick_beg = tpqn*4*(measure_beg - 1)
+    tick_end = tpqn*4*(measure_beg - 1 + measure_dur)
+
+    for i in range(len(note_seq)):
+        note = note_seq[i]
+        if note['time'] >= tick_beg:
+            index_beg = i
+            break
+    for i in range(len(note_seq)):
+        note = note_seq[i]
+        if note['time'] >= tick_end:
+            index_end = i
+            break
+
+    if index_beg == -1 or index_end == -1:
+        return -1
+
+    else:
+        return note_seq[index_beg:index_end]
+
 
 
 '''
@@ -97,9 +124,9 @@ Tests
 '''
 
 def main():
-    tracks = md.makeTracks("../tests/5.6 Right.band")
-    region1 = tracks[1]["regions"][0]
-    region2 = tracks[1]["regions"][1]
+    tracks = md.makeTracks(sys.argv[1])
+    region1 = tracks[1]["regions"][0]["notes"]
+    region2 = tracks[1]["regions"][1]["notes"]
 
     print are_equal(region1,region2)
 
