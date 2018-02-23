@@ -35,7 +35,7 @@ def decodeTextChunk( textChunk ):
   key, = struct.unpack("<I", textChunk[10:14])
   size, = struct.unpack("<I", textChunk[28:32])
   kind, = struct.unpack("B", textChunk[60])
-  text = textChunk[0x48:size+36].strip("\x00}")
+  text = textChunk[0x48:size+36].strip("\x00}r")
   # Translate rtf if needed
   if kind == 0x13:
     text = stripRTF(text)
@@ -95,7 +95,7 @@ def main():
   arr = getArr(mm)
   for a in arr:
     if len(a) == 2:
-      print "Length: %s, Text: %d" % a
+      print "Text: %s, Length: %d" % a
 
 if __name__ == "__main__":
   main()

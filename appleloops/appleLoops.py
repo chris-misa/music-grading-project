@@ -110,3 +110,10 @@ class Database:
     cur.execute("delete from audioloops where filename = ?;",(filename,))
     self.conn.commit()
 
+
+def getLoopMetadata(loopName):
+  """
+    Returns metadata for the given loop if it is found in database,
+    otherwise None
+  """
+  return Database().getDataForLoop(loopName)

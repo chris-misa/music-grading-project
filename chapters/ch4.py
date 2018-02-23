@@ -4,7 +4,9 @@
 
 import sys
 sys.path.append("../api")
+sys.path.append("../appleloops")
 import bandFile
+import appleLoops
 from errors import TestError, TestCode
 
 def hasCorrectInstruments(bf):
@@ -76,6 +78,23 @@ def trackThreeFourInst(bf):
   if bf['tracks'][4]['type'] != "instrument":
     return False
   return True
+
+def trackFiveHasCorrectLoop(bf):
+  """
+    Returns true if track five has an instrument loop or an audio loop
+    from the correct category
+  """
+  track = bf['tracks'][5]
+  # Fine is it's an instrument track
+  if track['type'] == "instrument":
+    return True
+  # Fail if there are no regions
+  if 'regions' not in track.keys():
+    return False
+  # Else check that each region qualifies
+  for r in track['regions']:
+    appleLoops.getLoopMetadata()
+  
 
 def test(fp):
   """
