@@ -84,6 +84,9 @@ def trackFiveHasCorrectLoop(bf):
     Returns true if track five has an instrument loop or an audio loop
     from the correct category
   """
+  # Fail if there is not track 5
+  if 5 not in bf['tracks'].keys():
+    return False
   track = bf['tracks'][5]
   # Fine is it's an instrument track
   if track['type'] == "instrument":
@@ -95,7 +98,10 @@ def trackFiveHasCorrectLoop(bf):
     # Else check that each region qualifies
     for r in track['regions']:
       metadata = appleLoops.getLoopMetadata(r['name'])
-      print("looking for: " + r['name'] + " got: " + str(metadata))
+      for md in metadata:
+        if "Percussion" not in md['category']:
+          return False
+    return True
   else:
     # Not instrument or audio track
     return False
