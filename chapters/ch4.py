@@ -8,6 +8,10 @@ sys.path.append("../appleloops")
 import bandFile
 import appleLoops
 from errors import TestError, TestCode
+from utilities import grab_section, are_equal
+import pprint
+
+TICKS_PER_MEASURE = 4 * 960
 
 def hasCorrectInstruments(bf):
   """
@@ -106,6 +110,20 @@ def trackFiveHasCorrectLoop(bf):
     # Not instrument or audio track
     return False
   
+def diffVerseChorus(tracks):
+  """
+    Returns true if the verse and chorus contain different regions in the given
+    track
+  """
+  for track in tracks:
+    if 'notes' not in track.keys():
+      continue
+    verseNotes = [note for note in track['notes'] if note['time'] < 8*TICKS_PER_MEASURE]
+    chorusNotes = [note for note in track['notes'] if note['time'] >= 8*TICKS_PER_MEASURE \
+      and note['time'] < 16*TICKS_PER_MEASURE]
+    if are_equal(verseNotes,chorusNotes):
+      return False
+  return True
 
 def test(fp):
   """
@@ -124,6 +142,9 @@ def test(fp):
   
   if not trackFiveHasCorrectLoop(bf):
     failedCodes.append(TestCode(4,4,description="Wrong type of loop in track five"))
+
+  if not diffVerseChorus([t for k,t in bf['tracks'].items() if k in [2,3,4,5]]):
+    failedCodes.append(TestCode(4,5,description="Same loop in verse and chorus"))
 
   if failedCodes:
     raise TestError(failedCodes)
