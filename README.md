@@ -7,7 +7,7 @@ change things, delete things, etc. . .
 
 # GarageBand File format:
 
-Last_First_MI_project.band
+Last_First_MI_assignment#.band
 
 # Assignment <==> Chapter Mapping
 ```
