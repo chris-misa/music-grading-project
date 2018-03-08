@@ -10,12 +10,14 @@ change things, delete things, etc. . .
 Last_First_MI_project.band
 
 # Assignment <==> Chapter Mapping
+```
 assignment 1: ch 2 ch 3
 assignment 2: ch 4
 assignment 3: ch 5
 assignment 4: ch 6
 assignment 5: ch 7 ch 8
 assignment 6: ch 12 ch 13
+```
 
 ## Proposed Directory Structure
 
