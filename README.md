@@ -4,6 +4,19 @@ This project reads and grades GarageBand files.
 This is a rough sketch of how things could go: please feel free to jump in, add comments
 change things, delete things, etc. . .
 
+
+# GarageBand File format:
+
+Last_First_MI_project.band
+
+# Assignment <==> Chapter Mapping
+assignment 1: ch 2 ch 3
+assignment 2: ch 4
+assignment 3: ch 5
+assignment 4: ch 6
+assignment 5: ch 7 ch 8
+assignment 6: ch 12 ch 13
+
 ## Proposed Directory Structure
 
 - root
