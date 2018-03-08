@@ -6,10 +6,10 @@ change things, delete things, etc. . .
 
 
 # Assignments
-Adam: Ch 12, interface script (bash or python)
-Andrew: Ch 6
-Chris: Ch 4
-Toby: Figure out canvas CSV upload specs
+* Adam: Ch 12, interface script (bash or python)
+* Andrew: Ch 6
+* Chris: Ch 4
+* Toby: Figure out canvas CSV upload specs
 
 # GarageBand File format:
 
