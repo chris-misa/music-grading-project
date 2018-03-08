@@ -5,6 +5,12 @@ This is a rough sketch of how things could go: please feel free to jump in, add 
 change things, delete things, etc. . .
 
 
+# Assignments
+Adam: Ch 12, interface script (bash or python)
+Andrew: Ch 6
+Chris: Ch 4
+Toby: Figure out canvas CSV upload specs
+
 # GarageBand File format:
 
 Last_First_MI_assignment#.band
@@ -47,18 +53,15 @@ user interface layer  <-> api layer
 Handles user input (files, rubric)
 Uses api and midi layers to grade each file
 Outputs results
-*Adam*?
 
 ### midi layer
 Receives midi files or note events from api layer (depending on what ends up working out)
 Implements test functions for all midi-related criteria, possibly in consultation with
 api layer for track or arrangement details.
-*Andrew*
 
 ### api layer
 Receives GarageBand files from user interface layer.
 Returns dictionay of properties needed to implement non-midi-related tests.
 Working branch: bandAPI
-*Chris*
 
 
