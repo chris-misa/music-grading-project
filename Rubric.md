@@ -41,8 +41,8 @@ T : trivial, E : easy, M : medium
 | 6.7. | A new melody should be composed for the bridge, following the requirement of 5.2. | M
 | 6.8. | The outro should be the same as the chorus, but with a Drummer track Outro region. | E
 | | | | |
-| 7.1. | The key/chord of all choruses and the outro should be changed. | T
-| 7.2. | All choruses and the outro should be changed by the same transposition (i.e. all by +5, or all by -7, etc.). | T
+| 7.1. | The key/chord of all choruses and the outro should be changed. | T | Done
+| 7.2. | All choruses and the outro should be changed by the same transposition (i.e. all by +5, or all by -7, etc.). | T | Done
 | | | | |
 | 8.1. | An instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1. | M
 | 8.2. | A different instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1, Verse 2, and Chorus 1. | M
