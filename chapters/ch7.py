@@ -33,7 +33,7 @@ def testTranspositionTrack(trans):
 
 def test(fp):
   """
-    Runs chapter 7 test against the given garageband project
+    Runs chapter 7 tests against the given garageband project
   """
   
   failedCodes = []
