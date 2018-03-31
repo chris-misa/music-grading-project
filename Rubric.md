@@ -15,9 +15,9 @@ T : trivial, E : easy, M : medium
 | 4.2. | Track 1 should be empty. | E | Done
 | 4.3. | Tracks 3 and 4 should have software instrument loops only. | E | Done
 | 4.4. | Track 5 may have software instrument loops, or audio loops if they are from the Percussion Instrument category of the Loop Browser. | E | Done
-| 4.5. | For tracks 2 through 5 there should be one loop in the verse, and a different one in the chorus. | M
-| 4.6. | Loop regions should be looped as necessary so that they are 8 measures long, lasting for the entire section. | E
-| 4.7. | Loops should be modified as necessary, with dissonances changed to consonances. | T
+| 4.5. | For tracks 2 through 5 there should be one loop in the verse, and a different one in the chorus. | M | Done
+| 4.6. | Loop regions should be looped as necessary so that they are 8 measures long, lasting for the entire section. | E | Done
+| 4.7. | Loops should be modified as necessary, with dissonances changed to consonances. | T | Done
 | | | | |
 | 5.1. | The Classic Electric Piano track's Gain plug-in should be between +5 and +15db. | T | Done
 | 5.2. | The Classic Electric Piano track (melody) should have | | Done

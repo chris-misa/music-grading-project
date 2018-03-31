@@ -75,7 +75,7 @@ def trackOneIsEmpty(bf):
 
 def trackThreeFourInst(bf):
   """
-    Returns true is track three and four are instument tracks
+    Returns true if track three and four are instument tracks
   """
   if bf['tracks'][3]['type'] != "instrument":
     return False
@@ -113,7 +113,8 @@ def trackFiveHasCorrectLoop(bf):
 def diffVerseChorus(tracks):
   """
     Returns true if the verse and chorus contain different regions in the given
-    track
+    tracks
+    Silently ignores tracks that do not define the 'notes' key (i.e. audio tracks)
   """
   for track in tracks:
     if 'notes' not in track.keys():
@@ -124,6 +125,32 @@ def diffVerseChorus(tracks):
     if are_equal(verseNotes,chorusNotes):
       return False
   return True
+
+def allRegionsAreEightMeasures(tracks):
+  """
+    Returns true if all regions in the given tracks are eight measures long
+    Silently ignores tracks that do not define 'regions' key
+  """
+  for k, track in tracks.items():
+    if 'regions' not in track.keys():
+      continue
+    for region in track['regions']:
+      if region['length'] / TICKS_PER_MEASURE != 8:
+        return False
+  return True
+
+def check_white_keys(tracks):
+  """
+    Adapted from ch5.py: test if there are any black keys in the loop
+  """
+  for track in tracks:
+    if "notes" in track.keys():
+      for note in track['notes']:
+        p = note["pitch"] % 12
+        if p == 1 or p == 3 or p == 6 or p == 8 or p == 10:
+          return False
+  return True
+  
 
 def test(fp):
   """
@@ -145,6 +172,12 @@ def test(fp):
 
   if not diffVerseChorus([t for k,t in bf['tracks'].items() if k in [2,3,4,5]]):
     failedCodes.append(TestCode(4,5,description="Same loop in verse and chorus"))
+
+  if not allRegionsAreEightMeasures(bf['tracks']) :
+    failedCodes.append(TestCode(4,6,description="Some regions are not extended to be eight measures long"))
+
+  if not check_white_keys([t for k,t in bf['tracks'].items() if k in [3,4,5]]):
+    failedCodes.append(TestCode(4,7,description="Found at least one black key in tracks 3 through 5"))
 
   if failedCodes:
     raise TestError(failedCodes)
