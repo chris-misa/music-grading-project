@@ -15,13 +15,14 @@ def main():
     return
   db = appleLoops.Database()
   count = 0
+  print("Looking through {}".format(sys.argv[1]))
   for path in glob.glob(sys.argv[1]):
     try:
       data = cafLib.loadMetaData(path)
     except:
       print("Failed to load meta data from: {}".format(path))
       continue
-    data['filename'] = os.path.basename(path)
+    data['filename'] = unicode(os.path.basename(path), "utf-8")
     if db.addFilename(data) == 0:
       count += 1
     else:

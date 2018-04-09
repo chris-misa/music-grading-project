@@ -17,8 +17,8 @@ def getMetaDataChunk(filepath):
     Opens the given file, finds the uuid chunk with meta data uuid,
     dumps the data section minus headers and uuid as string
   """
-  with open(filepath, "r+b") as f:
-    cafData = mmap.mmap(f.fileno(), 0)
+  with open(filepath, "rb") as f:
+    cafData = mmap.mmap(f.fileno(), 0, mmap.MAP_PRIVATE)
     addr = 0
     while True:
       addr = cafData.find(b"uuid")
@@ -34,8 +34,8 @@ def decodeMetaData(md):
   result = {}
   mdSplit = md[4:].split("\x00")
   for i in range(0, len(mdSplit) - 1, 2):
-    key = mdSplit[i].replace(" ", "_")
-    result[key] = mdSplit[i+1]
+    key = unicode(mdSplit[i].replace(" ", "_"),"utf-8")
+    result[key] = unicode(mdSplit[i+1],"utf-8")
   return result
 
 def loadMetaData(filepath):
