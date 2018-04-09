@@ -44,8 +44,8 @@ T : trivial, E : easy, M : medium
 | 7.1. | The key/chord of all choruses and the outro should be changed. | T | Done
 | 7.2. | All choruses and the outro should be changed by the same transposition (i.e. all by +5, or all by -7, etc.). | T | Done
 | | | | |
-| 8.1. | An instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1. | M
-| 8.2. | A different instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1, Verse 2, and Chorus 1. | M
+| 8.1. | An instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1. | M | Done
+| 8.2. | A different instrument that is not melody, drums, or playing in the intro should be deleted from Verse 1, Verse 2, and Chorus 1. | M | Done
 | 8.3. | A loop from the Tambourine or Shaker Instrument categories of the loop browser should be in Chorus 3 and the outro, in its own track and looped as necessary to take up the full 16 measures. | E
 | 8.4. | A loop from the Vocals Instrument category and the Single Moods category of the loop browser, with the correct Scale chosen, should be in the outro, in its own track and looped as necessary to take up the full 8 measures. | E
 | | | | |
